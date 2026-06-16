@@ -1,5 +1,12 @@
+# Secrets
 .env
 data/token.json
+
+# Captured API traffic (may contain session data)
+data/api_calls.json
+data/forecast_api.json
+
+# Python
 __pycache__/
 *.pyc
 .venv/
