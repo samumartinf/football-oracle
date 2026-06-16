@@ -1,206 +1,4 @@
 {
-  "Panama": {
-    "name": "Panama",
-    "elo": 1562,
-    "recent_form": [
-      "W",
-      "W",
-      "D",
-      "W",
-      "D"
-    ],
-    "goals_for_5": 21,
-    "goals_against_5": 16,
-    "market_prob": {
-      "opponent": "Guyana",
-      "prob_win": 0.836,
-      "prob_draw": 0.1108,
-      "prob_lose": 0.0532
-    }
-  },
-  "Iraq": {
-    "name": "Iraq",
-    "elo": 1648,
-    "recent_form": [
-      "W",
-      "W",
-      "D",
-      "D",
-      "W"
-    ],
-    "goals_for_5": 32,
-    "goals_against_5": 14,
-    "market_prob": {
-      "opponent": "Indonesia",
-      "prob_win": 0.699,
-      "prob_draw": 0.2019,
-      "prob_lose": 0.0991
-    }
-  },
-  "Austria": {
-    "name": "Austria",
-    "elo": 1601,
-    "recent_form": [
-      "D",
-      "W",
-      "L",
-      "W",
-      "W"
-    ],
-    "goals_for_5": 22,
-    "goals_against_5": 4,
-    "market_prob": {
-      "opponent": "Romania",
-      "prob_win": 0.714,
-      "prob_draw": 0.1788,
-      "prob_lose": 0.1071
-    }
-  },
-  "Czech Republic": {
-    "name": "Czech Republic",
-    "elo": 1561,
-    "recent_form": [
-      "D",
-      "D",
-      "W",
-      "L",
-      "D"
-    ],
-    "goals_for_5": 21,
-    "goals_against_5": 11,
-    "market_prob": {
-      "opponent": "Faroe Islands",
-      "prob_win": 0.8393,
-      "prob_draw": 0.1139,
-      "prob_lose": 0.0468
-    }
-  },
-  "Croatia": {
-    "name": "Croatia",
-    "elo": 1616,
-    "recent_form": [
-      "W",
-      "W",
-      "W",
-      "D",
-      "W"
-    ],
-    "goals_for_5": 52,
-    "goals_against_5": 25,
-    "market_prob": {
-      "opponent": "Czech Republic",
-      "prob_win": 0.4664,
-      "prob_draw": 0.2815,
-      "prob_lose": 0.252
-    }
-  },
-  "Qatar": {
-    "name": "Qatar",
-    "elo": 1502,
-    "recent_form": [
-      "W",
-      "D",
-      "L",
-      "W",
-      "L"
-    ],
-    "goals_for_5": 38,
-    "goals_against_5": 35,
-    "market_prob": {
-      "opponent": "Afghanistan",
-      "prob_win": 0.9341,
-      "prob_draw": 0.049,
-      "prob_lose": 0.0169
-    }
-  },
-  "Colombia": {
-    "name": "Colombia",
-    "elo": 1630,
-    "recent_form": [
-      "W",
-      "W",
-      "D",
-      "D",
-      "D"
-    ],
-    "goals_for_5": 46,
-    "goals_against_5": 25,
-    "market_prob": {
-      "opponent": "Venezuela",
-      "prob_win": 0.7351,
-      "prob_draw": 0.1897,
-      "prob_lose": 0.0752
-    }
-  },
-  "Portugal": {
-    "name": "Portugal",
-    "elo": 1575,
-    "recent_form": [
-      "W",
-      "L",
-      "D",
-      "W",
-      "W"
-    ],
-    "goals_for_5": 42,
-    "goals_against_5": 26,
-    "market_prob": {
-      "opponent": "Ireland",
-      "prob_win": 0.8377,
-      "prob_draw": 0.1166,
-      "prob_lose": 0.0457
-    }
-  },
-  "Canada": {
-    "name": "Canada",
-    "elo": 1450,
-    "recent_form": [
-      "L",
-      "L",
-      "L"
-    ],
-    "goals_for_5": 2,
-    "goals_against_5": 7,
-    "market_prob": null
-  },
-  "Algeria": {
-    "name": "Algeria",
-    "elo": 1610,
-    "recent_form": [
-      "W",
-      "W",
-      "D",
-      "W",
-      "W"
-    ],
-    "goals_for_5": 31,
-    "goals_against_5": 15,
-    "market_prob": {
-      "opponent": "Somalia",
-      "prob_win": 0.9329,
-      "prob_draw": 0.0493,
-      "prob_lose": 0.0177
-    }
-  },
-  "DR Congo": {
-    "name": "DR Congo",
-    "elo": 1599,
-    "recent_form": [
-      "D",
-      "D",
-      "W",
-      "W",
-      "W"
-    ],
-    "goals_for_5": 17,
-    "goals_against_5": 7,
-    "market_prob": {
-      "opponent": "Mauritania",
-      "prob_win": 0.6203,
-      "prob_draw": 0.2458,
-      "prob_lose": 0.1339
-    }
-  },
   "Argentina": {
     "name": "Argentina",
     "elo": 1665,
@@ -219,6 +17,18 @@
       "prob_draw": 0.2022,
       "prob_lose": 0.0876
     }
+  },
+  "Canada": {
+    "name": "Canada",
+    "elo": 1450,
+    "recent_form": [
+      "L",
+      "L",
+      "L"
+    ],
+    "goals_for_5": 2,
+    "goals_against_5": 7,
+    "market_prob": null
   },
   "Norway": {
     "name": "Norway",
@@ -239,42 +49,23 @@
       "prob_lose": 0.3545
     }
   },
-  "Jordan": {
-    "name": "Jordan",
-    "elo": 1586,
+  "Senegal": {
+    "name": "Senegal",
+    "elo": 1601,
     "recent_form": [
-      "L",
       "W",
-      "D",
       "W",
-      "D"
-    ],
-    "goals_for_5": 32,
-    "goals_against_5": 12,
-    "market_prob": {
-      "opponent": "Saudi Arabia",
-      "prob_win": 0.2559,
-      "prob_draw": 0.3005,
-      "prob_lose": 0.4435
-    }
-  },
-  "Switzerland": {
-    "name": "Switzerland",
-    "elo": 1571,
-    "recent_form": [
-      "D",
       "W",
-      "D",
       "W",
       "W"
     ],
     "goals_for_5": 31,
-    "goals_against_5": 23,
+    "goals_against_5": 14,
     "market_prob": {
-      "opponent": "Kosovo",
-      "prob_win": 0.6753,
-      "prob_draw": 0.198,
-      "prob_lose": 0.1267
+      "opponent": "South Sudan",
+      "prob_win": 0.906,
+      "prob_draw": 0.0725,
+      "prob_lose": 0.0215
     }
   },
   "South Africa": {
@@ -296,42 +87,42 @@
       "prob_lose": 0.1598
     }
   },
-  "Ghana": {
-    "name": "Ghana",
-    "elo": 1553,
+  "Switzerland": {
+    "name": "Switzerland",
+    "elo": 1571,
     "recent_form": [
-      "W",
-      "W",
+      "D",
       "W",
       "D",
+      "W",
       "W"
     ],
-    "goals_for_5": 32,
-    "goals_against_5": 19,
+    "goals_for_5": 31,
+    "goals_against_5": 23,
     "market_prob": {
-      "opponent": "Madagascar",
-      "prob_win": 0.7475,
-      "prob_draw": 0.1821,
-      "prob_lose": 0.0704
+      "opponent": "Kosovo",
+      "prob_win": 0.6753,
+      "prob_draw": 0.198,
+      "prob_lose": 0.1267
     }
   },
-  "Uzbekistan": {
-    "name": "Uzbekistan",
-    "elo": 1643,
+  "DR Congo": {
+    "name": "DR Congo",
+    "elo": 1599,
     "recent_form": [
+      "D",
+      "D",
       "W",
-      "D",
-      "D",
       "W",
       "W"
     ],
-    "goals_for_5": 27,
-    "goals_against_5": 11,
+    "goals_for_5": 17,
+    "goals_against_5": 7,
     "market_prob": {
-      "opponent": "Iran",
-      "prob_win": 0.3134,
-      "prob_draw": 0.3304,
-      "prob_lose": 0.3561
+      "opponent": "Mauritania",
+      "prob_win": 0.6203,
+      "prob_draw": 0.2458,
+      "prob_lose": 0.1339
     }
   },
   "Bosnia": {
@@ -353,25 +144,6 @@
       "prob_lose": 0.1308
     }
   },
-  "France": {
-    "name": "France",
-    "elo": 1720,
-    "recent_form": [
-      "W",
-      "W",
-      "D",
-      "W",
-      "W"
-    ],
-    "goals_for_5": 55,
-    "goals_against_5": 20,
-    "market_prob": {
-      "opponent": "Iceland",
-      "prob_win": 0.8824,
-      "prob_draw": 0.0817,
-      "prob_lose": 0.0359
-    }
-  },
   "England": {
     "name": "England",
     "elo": 1613,
@@ -391,23 +163,251 @@
       "prob_lose": 0.0424
     }
   },
-  "Senegal": {
-    "name": "Senegal",
+  "Colombia": {
+    "name": "Colombia",
+    "elo": 1630,
+    "recent_form": [
+      "W",
+      "W",
+      "D",
+      "D",
+      "D"
+    ],
+    "goals_for_5": 46,
+    "goals_against_5": 25,
+    "market_prob": {
+      "opponent": "Venezuela",
+      "prob_win": 0.7351,
+      "prob_draw": 0.1897,
+      "prob_lose": 0.0752
+    }
+  },
+  "Austria": {
+    "name": "Austria",
     "elo": 1601,
+    "recent_form": [
+      "D",
+      "W",
+      "L",
+      "W",
+      "W"
+    ],
+    "goals_for_5": 22,
+    "goals_against_5": 4,
+    "market_prob": {
+      "opponent": "Romania",
+      "prob_win": 0.714,
+      "prob_draw": 0.1788,
+      "prob_lose": 0.1071
+    }
+  },
+  "Croatia": {
+    "name": "Croatia",
+    "elo": 1616,
     "recent_form": [
       "W",
       "W",
       "W",
+      "D",
+      "W"
+    ],
+    "goals_for_5": 52,
+    "goals_against_5": 25,
+    "market_prob": {
+      "opponent": "Czech Republic",
+      "prob_win": 0.4664,
+      "prob_draw": 0.2815,
+      "prob_lose": 0.252
+    }
+  },
+  "Jordan": {
+    "name": "Jordan",
+    "elo": 1586,
+    "recent_form": [
+      "L",
+      "W",
+      "D",
+      "W",
+      "D"
+    ],
+    "goals_for_5": 32,
+    "goals_against_5": 12,
+    "market_prob": {
+      "opponent": "Saudi Arabia",
+      "prob_win": 0.2559,
+      "prob_draw": 0.3005,
+      "prob_lose": 0.4435
+    }
+  },
+  "Czech Republic": {
+    "name": "Czech Republic",
+    "elo": 1561,
+    "recent_form": [
+      "D",
+      "D",
+      "W",
+      "L",
+      "D"
+    ],
+    "goals_for_5": 21,
+    "goals_against_5": 11,
+    "market_prob": {
+      "opponent": "Faroe Islands",
+      "prob_win": 0.8393,
+      "prob_draw": 0.1139,
+      "prob_lose": 0.0468
+    }
+  },
+  "Portugal": {
+    "name": "Portugal",
+    "elo": 1575,
+    "recent_form": [
+      "W",
+      "L",
+      "D",
+      "W",
+      "W"
+    ],
+    "goals_for_5": 42,
+    "goals_against_5": 26,
+    "market_prob": {
+      "opponent": "Ireland",
+      "prob_win": 0.8377,
+      "prob_draw": 0.1166,
+      "prob_lose": 0.0457
+    }
+  },
+  "France": {
+    "name": "France",
+    "elo": 1720,
+    "recent_form": [
+      "W",
+      "W",
+      "D",
+      "W",
+      "W"
+    ],
+    "goals_for_5": 55,
+    "goals_against_5": 20,
+    "market_prob": {
+      "opponent": "Iceland",
+      "prob_win": 0.8824,
+      "prob_draw": 0.0817,
+      "prob_lose": 0.0359
+    }
+  },
+  "Panama": {
+    "name": "Panama",
+    "elo": 1562,
+    "recent_form": [
+      "W",
+      "W",
+      "D",
+      "W",
+      "D"
+    ],
+    "goals_for_5": 21,
+    "goals_against_5": 16,
+    "market_prob": {
+      "opponent": "Guyana",
+      "prob_win": 0.836,
+      "prob_draw": 0.1108,
+      "prob_lose": 0.0532
+    }
+  },
+  "Uzbekistan": {
+    "name": "Uzbekistan",
+    "elo": 1643,
+    "recent_form": [
+      "W",
+      "D",
+      "D",
+      "W",
+      "W"
+    ],
+    "goals_for_5": 27,
+    "goals_against_5": 11,
+    "market_prob": {
+      "opponent": "Iran",
+      "prob_win": 0.3134,
+      "prob_draw": 0.3304,
+      "prob_lose": 0.3561
+    }
+  },
+  "Ghana": {
+    "name": "Ghana",
+    "elo": 1553,
+    "recent_form": [
+      "W",
+      "W",
+      "W",
+      "D",
+      "W"
+    ],
+    "goals_for_5": 32,
+    "goals_against_5": 19,
+    "market_prob": {
+      "opponent": "Madagascar",
+      "prob_win": 0.7475,
+      "prob_draw": 0.1821,
+      "prob_lose": 0.0704
+    }
+  },
+  "Qatar": {
+    "name": "Qatar",
+    "elo": 1502,
+    "recent_form": [
+      "W",
+      "D",
+      "L",
+      "W",
+      "L"
+    ],
+    "goals_for_5": 38,
+    "goals_against_5": 35,
+    "market_prob": {
+      "opponent": "Afghanistan",
+      "prob_win": 0.9341,
+      "prob_draw": 0.049,
+      "prob_lose": 0.0169
+    }
+  },
+  "Iraq": {
+    "name": "Iraq",
+    "elo": 1648,
+    "recent_form": [
+      "W",
+      "W",
+      "D",
+      "D",
+      "W"
+    ],
+    "goals_for_5": 32,
+    "goals_against_5": 14,
+    "market_prob": {
+      "opponent": "Indonesia",
+      "prob_win": 0.699,
+      "prob_draw": 0.2019,
+      "prob_lose": 0.0991
+    }
+  },
+  "Algeria": {
+    "name": "Algeria",
+    "elo": 1610,
+    "recent_form": [
+      "W",
+      "W",
+      "D",
       "W",
       "W"
     ],
     "goals_for_5": 31,
-    "goals_against_5": 14,
+    "goals_against_5": 15,
     "market_prob": {
-      "opponent": "South Sudan",
-      "prob_win": 0.906,
-      "prob_draw": 0.0725,
-      "prob_lose": 0.0215
+      "opponent": "Somalia",
+      "prob_win": 0.9329,
+      "prob_draw": 0.0493,
+      "prob_lose": 0.0177
     }
   }
 }

@@ -140,7 +140,7 @@ def scrape_all_odds():
         if odds:
             odds["date"] = date_str
             results.append(odds)
-        time.sleep(5)
+        time.sleep(1)
 
     output = DATA_DIR / "odds" / "upcoming_odds.csv"
     output.parent.mkdir(parents=True, exist_ok=True)
