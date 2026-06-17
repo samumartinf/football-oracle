@@ -30,12 +30,16 @@ def test_ensemble_weights_sum():
 
 
 def test_ensemble_fallback_no_elo():
-    """Should return fallback probabilities if no data."""
+    """Fallback for unknown teams should produce valid probabilities summing to 1."""
     predictor = EnsemblePredictor({})
     result = predictor.predict("Nonexistent", "FakeTeam")
-    assert result["home"] == 0.40
-    assert result["draw"] == 0.30
-    assert result["away"] == 0.30
+    # Probabilities should sum to 1.0 (valid distribution)
+    total = result["home"] + result["draw"] + result["away"]
+    assert abs(total - 1.0) < 0.01, f"Probs sum to {total}"
+    # All probabilities should be between 0 and 1
+    assert 0 < result["home"] < 1
+    assert 0 < result["draw"] < 1
+    assert 0 < result["away"] < 1
 
 
 def test_ensemble_england_croatia():

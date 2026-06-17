@@ -1,51 +1,150 @@
-"""Ensemble predictor blending Elo, Poisson, and market odds models."""
+"""Ensemble predictor blending Elo, Poisson, decomposed Poisson, and market odds."""
+
 import json
 from pathlib import Path
 from models.elo import predict_match as elo_predict
-from models.poisson import predict_match as poisson_predict
+from models.poisson import (
+    predict_match as poisson_predict,
+    compute_strengths,
+    match_probabilities_decomposed,
+)
+from models.xg import (
+    load_xg_data,
+    compute_xg_strengths,
+    xg_match_probabilities,
+)
 
 
 class EnsemblePredictor:
-    """Blend multiple models into a single prediction with configurable weights."""
+    """Blend multiple models into a single prediction with configurable weights.
+    
+    Default weights from backtest grid search on 339 historical matches:
+    25% Elo / 0% Poisson (Elo-based) / 75% Decomposed Poisson / 0% Market
+    """
 
     def __init__(self, dataset, weights=None):
         self.dataset = dataset
-        self.weights = weights or {"elo": 0.3, "poisson": 0.4, "market": 0.3}
+        self.weights = weights or {
+            "elo": 0.25, "poisson": 0.0, "decomposed": 0.75, "xg": 0.0, "market": 0.0,
+        }
+        # Pre-compute attack/defense strengths (goals-based)
+        self.attack, self.defense = compute_strengths(dataset)
+        # Pre-compute xG strengths (StatsBomb data)
+        self.xg_attack = {}
+        self.xg_defense = {}
+        try:
+            xg_matches = load_xg_data()
+            if xg_matches:
+                self.xg_attack, self.xg_defense = compute_xg_strengths(xg_matches)
+        except (FileNotFoundError, Exception):
+            pass  # xG data not available — model will be skipped
 
     def predict(self, home_team, away_team, neutral=True):
-        """Blend all available models into a single prediction."""
+        """Blend all available models into a single prediction.
+
+        When a team lacks goal data (MP < 5), decomposed weight is reduced
+        and shifted to Elo, since the decomposed model can't distinguish
+        team quality without goal history.
+        """
         home_probs = []
         draw_probs = []
         away_probs = []
         models_used = {}
 
+        # Per-match weight adjustment: reduce decomposed weight when
+        # teams lack goal data (no pre-tournament GF/GA to model from)
+        home_mp = self.dataset.get(home_team, {}).get("matches_played", 0)
+        away_mp = self.dataset.get(away_team, {}).get("matches_played", 0)
+        min_mp = min(home_mp, away_mp)
+        goal_trust = min(min_mp / 5, 1.0)  # 0 matches → 0% trust, 5+ → 100%
+
+        base_elo = self.weights.get("elo", 0)
+        base_decom = self.weights.get("decomposed", 0)
+
+        # Shift weight from decomposed to Elo based on data scarcity
+        adj_elo = base_elo + base_decom * (1 - goal_trust)
+        adj_decom = base_decom * goal_trust
+
         # Elo model
         try:
             result = elo_predict(home_team, away_team, self.dataset, neutral=neutral)
-            w = self.weights["elo"]
-            home_probs.append(result["home"] * w)
-            draw_probs.append(result["draw"] * w)
-            away_probs.append(result["away"] * w)
-            models_used["elo"] = result
+            w = adj_elo
+            if w > 0:
+                home_probs.append(result["home"] * w)
+                draw_probs.append(result["draw"] * w)
+                away_probs.append(result["away"] * w)
+                models_used["elo"] = result
         except (KeyError, TypeError):
             pass
 
-        # Poisson model
+        # Poisson (Elo-based)
         try:
             result = poisson_predict(home_team, away_team, self.dataset, neutral=neutral)
-            w = self.weights["poisson"]
+            w = self.weights.get("poisson", 0)
+            if w > 0:
+                home_probs.append(result["home"] * w)
+                draw_probs.append(result["draw"] * w)
+                away_probs.append(result["away"] * w)
+                models_used["poisson"] = result
+        except (KeyError, TypeError):
+            pass
+
+        # Decomposed Poisson (attack/defense strengths)
+        w = adj_decom
+        if w > 0:
+            att_h = self.attack.get(home_team, 1.0)
+            def_h = self.defense.get(home_team, 1.0)
+            att_a = self.attack.get(away_team, 1.0)
+            def_a = self.defense.get(away_team, 1.0)
+
+            result = match_probabilities_decomposed(
+                att_h, def_h, att_a, def_a, neutral=neutral)
             home_probs.append(result["home"] * w)
             draw_probs.append(result["draw"] * w)
             away_probs.append(result["away"] * w)
-            models_used["poisson"] = result
-        except (KeyError, TypeError):
-            pass
+            models_used["decomposed"] = {
+                "home": result["home"],
+                "draw": result["draw"],
+                "away": result["away"],
+                "home_lambda": result["home_lambda"],
+                "away_lambda": result["away_lambda"],
+                "att_h": round(att_h, 2),
+                "def_h": round(def_h, 2),
+                "att_a": round(att_a, 2),
+                "def_a": round(def_a, 2),
+            }
+
+        # xG-based Poisson (StatsBomb xG data)
+        w = self.weights.get("xg", 0)
+        if w > 0 and self.xg_attack:
+            att_h = self.xg_attack.get(home_team)
+            def_h = self.xg_defense.get(home_team)
+            att_a = self.xg_attack.get(away_team)
+            def_a = self.xg_defense.get(away_team)
+
+            if all(v is not None for v in [att_h, def_h, att_a, def_a]):
+                result = xg_match_probabilities(
+                    att_h, def_h, att_a, def_a, neutral=neutral)
+                home_probs.append(result["home"] * w)
+                draw_probs.append(result["draw"] * w)
+                away_probs.append(result["away"] * w)
+                models_used["xg"] = {
+                    "home": result["home"],
+                    "draw": result["draw"],
+                    "away": result["away"],
+                    "home_lambda": result["home_lambda"],
+                    "away_lambda": result["away_lambda"],
+                    "att_h": round(att_h, 2),
+                    "def_h": round(def_h, 2),
+                    "att_a": round(att_a, 2),
+                    "def_a": round(def_a, 2),
+                }
 
         # Market odds
         home_data = self.dataset.get(home_team, {})
         market = home_data.get("market_prob")
-        if market:
-            w = self.weights["market"]
+        w = self.weights.get("market", 0)
+        if market and w > 0:
             home_probs.append(market["prob_win"] * w)
             draw_probs.append(market["prob_draw"] * w)
             away_probs.append(market["prob_lose"] * w)

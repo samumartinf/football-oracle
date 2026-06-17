@@ -21,8 +21,9 @@ def build_team_dataset():
         "name": team,
         "elo": None,
         "recent_form": [],
-        "goals_for_5": 0,
-        "goals_against_5": 0,
+        "goals_for": 0,
+        "goals_against": 0,
+        "matches_played": 0,
         "market_prob": None,
     } for team in WC_TEAMS}
 
@@ -44,8 +45,9 @@ def build_team_dataset():
                     continue
                 dataset[team]["recent_form"].append(row["result"])
                 try:
-                    dataset[team]["goals_for_5"] += int(row["gf"])
-                    dataset[team]["goals_against_5"] += int(row["ga"])
+                    dataset[team]["goals_for"] += int(row["gf"])
+                    dataset[team]["goals_against"] += int(row["ga"])
+                    dataset[team]["matches_played"] += 1
                 except ValueError:
                     pass
 

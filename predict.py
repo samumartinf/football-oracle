@@ -16,8 +16,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from models.ensemble import EnsemblePredictor, load_dataset
-from models.optimizer import recommend_pick
+from models.optimizer import recommend_pick, recommend_batch
 from models.news_adjuster import get_adjustments, apply_adjustments
+from models.form_updater import apply_tournament_form
 
 # Fallback match data (used when API returns nothing)
 FALLBACK_MATCHES = [
@@ -40,7 +41,9 @@ def main():
     show_double = False
     check_news = False
     do_submit = False
+    update_form = False
     filter_match = None
+    max_contrarian = None  # None = unlimited, int = cap
 
     args = sys.argv[1:]
     i = 0
@@ -53,13 +56,22 @@ def main():
             check_news = True; i += 1
         elif args[i] == "--submit":
             do_submit = True; i += 1
+        elif args[i] == "--update-form":
+            update_form = True; i += 1
+        elif args[i] == "--max-contrarian" and i + 1 < len(args):
+            max_contrarian = int(args[i + 1]); i += 2
         elif args[i] == "--match" and i + 2 < len(args):
             filter_match = (args[i + 1], args[i + 2]); i += 3
         else:
             i += 1
 
-    print("Loading dataset...")
-    dataset = load_dataset()
+    # Update form from live tournament results before predicting
+    if update_form:
+        print("🔄 Updating form from live tournament results...")
+        dataset = apply_tournament_form()
+    else:
+        print("Loading dataset...")
+        dataset = load_dataset()
     predictor = EnsemblePredictor(dataset)
 
     # Fetch live matches from MPP API, fall back to hardcoded
@@ -94,16 +106,9 @@ def main():
         else:
             print("   No disruptions found\n")
 
-    # Predictions
-    header = f"{'Match':<30} {'Pick':>10} {'Score':>6} {'EV':>8} {'Total':>8} {'Bonus':>14} {'Notes':>20}"
-    print("\n" + header)
-    print("-" * len(header))
-
-    double_candidate = None
-    best_double_boost = 0
-    double_pick_for_best = None
-    submissions = []
-
+    # Predictions — collect all match data first
+    match_predictions = []  # (match, probs, points, crowd)
+    
     for match in matches:
         home = match["home"]; away = match["away"]
         points = match["points"]; crowd = match.get("crowd", {})
@@ -117,27 +122,99 @@ def main():
             p = result["models"]["poisson"]
             probs["home_lambda"] = p.get("home_lambda", 1.4)
             probs["away_lambda"] = p.get("away_lambda", 1.1)
+        # Also check decomposed/xg models for lambdas
+        for model_name in ["decomposed", "xg"]:
+            if model_name in result.get("models", {}):
+                m = result["models"][model_name]
+                probs["home_lambda"] = m.get("home_lambda", probs.get("home_lambda", 1.4))
+                probs["away_lambda"] = m.get("away_lambda", probs.get("away_lambda", 1.1))
 
-        note = ""
+        # Fall back to Elo-derived λ when decomposed data is weak.
+        # For score prediction, also blend in actual tournament goals-per-match
+        # to capture red-hot form (e.g. Germany 7 goals in 1 match).
+        home_mp = dataset.get(home, {}).get("matches_played", 0)
+        away_mp = dataset.get(away, {}).get("matches_played", 0)
+        home_elo = dataset.get(home, {}).get("elo", 1500)
+        away_elo = dataset.get(away, {}).get("elo", 1500)
+        elo_diff = (home_elo - away_elo) / 100 * 0.35
+        AVG = 2.7 / 2  # 1.35
+
+        # Elo-derived base λ
+        elo_hl = max(0.3, AVG + elo_diff / 2)
+        elo_al = max(0.3, AVG - elo_diff / 2)
+
+        # Tournament form λ: actual goals per match in this tournament
+        # Only use if team has played and scored
+        home_gf = dataset.get(home, {}).get("goals_for", 0)
+        away_gf = dataset.get(away, {}).get("goals_for", 0)
+        home_form_lam = home_gf / max(home_mp, 1) if home_mp > 0 else None
+        away_form_lam = away_gf / max(away_mp, 1) if away_mp > 0 else None
+
+        # Blend: Elo base + tournament form. More trust in form with more matches.
+        # Skip form blend if team hasn't scored (form_lam=0 would unfairly punish
+        # teams coming off a 0-0 draw like Spain).
+        form_trust = min(min(home_mp, away_mp) / 5, 0.5)  # max 50% form influence
+        if home_form_lam is not None and home_form_lam > 0:
+            probs["home_lambda"] = elo_hl * (1 - form_trust) + home_form_lam * form_trust
+        else:
+            probs["home_lambda"] = elo_hl
+        if away_form_lam is not None and away_form_lam > 0:
+            probs["away_lambda"] = elo_al * (1 - form_trust) + away_form_lam * form_trust
+        else:
+            probs["away_lambda"] = elo_al
+
         if adjustments:
-            probs, note = apply_adjustments(probs, home, away, adjustments)
-        note_str = f" ⚠️ {note[:50]}" if note else ""
+            probs, _note = apply_adjustments(probs, home, away, adjustments)
+        else:
+            _note = ""
 
-        pick = recommend_pick(probs, points, points_behind=catch_up, crowd_pcts=crowd)
-        double = recommend_pick(probs, points, points_behind=catch_up, crowd_pcts=crowd, double_match=True)
-        boost = double["ev"] - pick["ev"]
-        if boost > best_double_boost:
-            best_double_boost = boost
-            double_candidate = match
-            double_pick_for_best = double
+        match_predictions.append((match, probs, points, crowd))
 
-        flag = " 🔥" if pick["outcome"] != "home" else ""
-        bonus_str = f"+{pick['bonus_points']} ({pick['bonus_name']})" if pick["bonus_name"] else "—"
+    # Find best double-points match (independent of contrarian cap)
+    double_match_idx = None
+    if show_double and match_predictions:
+        best_double_boost = 0
+        for i, (match, probs, points, crowd) in enumerate(match_predictions):
+            base = recommend_pick(probs, points, points_behind=catch_up, crowd_pcts=crowd, double_match=False)
+            dbl = recommend_pick(probs, points, points_behind=catch_up, crowd_pcts=crowd, double_match=True)
+            boost = dbl["ev"] - base["ev"]
+            if boost > best_double_boost:
+                best_double_boost = boost
+                double_match_idx = i
+                double_candidate = match
+                double_pick_for_best = dbl
+
+    # Batch-optimize picks
+    if max_contrarian is not None:
+        picks = recommend_batch(match_predictions, points_behind=catch_up,
+                               max_contrarian=max_contrarian,
+                               double_match_idx=double_match_idx)
+    else:
+        # Fallback: per-match optimization (legacy)
+        picks = []
+        for match, probs, points, crowd in match_predictions:
+            picks.append(recommend_pick(probs, points, points_behind=catch_up, crowd_pcts=crowd))
+
+    # Display
+    header = f"{'Match':<30} {'Pick':>10} {'Score':>6} {'EV':>8} {'Total':>8} {'Bonus':>14} {'Notes':>25}"
+    print("\n" + header)
+    print("-" * len(header))
+
+    submissions = []
+    for i, ((match, probs, points, crowd), pick) in enumerate(zip(match_predictions, picks)):
+        home = match["home"]; away = match["away"]
+        contrarian_flag = " 🔥" if pick.get("contrarian") else ""
+        switched_flag = " ⚠️ capped" if pick.get("switched_from_contrarian") else ""
+        bonus_str = f"+{pick['bonus_points']} ({pick['bonus_name']})" if pick.get("bonus_name") else "—"
+        double_flag = " ⚡×2" if pick.get("doubled") else ""
+        note = pick.get("reasoning", "")
+        if len(note) > 45:
+            note = note[:42] + "..."
 
         print(
             f"{home[:12]:<12} v {away[:12]:<12}  "
-            f"{pick['outcome']:>10}{flag} {pick['score']:>6} "
-            f"{pick['ev']:>7.1f}  {pick['total_possible']:>5}   {bonus_str:<14} {note_str:<20}"
+            f"{pick['outcome']:>10}{contrarian_flag} {pick['score']:>6} "
+            f"{pick['ev']:>7.1f}  {pick['total_possible']:>5}   {bonus_str:<14} {note:<25}{switched_flag}{double_flag}"
         )
 
         submissions.append({"match": match, "pick": pick})

@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
-#!/usr/bin/env python3
 """Run the full data pipeline: scrape all sources and build dataset."""
 import importlib
+import sys
 import time
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
 def main():

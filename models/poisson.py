@@ -80,6 +80,45 @@ def _argmax_2d(matrix):
     return max_pos
 
 
+def most_likely_score(home_lambda, away_lambda, outcome=None):
+    """Find the most likely scoreline from the full Poisson probability matrix.
+
+    Args:
+        home_lambda: expected goals for home team
+        away_lambda: expected goals for away team
+        outcome: 'home', 'draw', or 'away' to filter. None = any outcome.
+
+    Returns:
+        (home_goals, away_goals, probability) as (int, int, float)
+    """
+    probs = score_probability(home_lambda, away_lambda)
+
+    best_i, best_j, best_p = 0, 0, -1.0
+    for i in range(len(probs)):
+        for j in range(len(probs[0])):
+            if outcome == "home" and not (i > j):
+                continue
+            if outcome == "draw" and not (i == j):
+                continue
+            if outcome == "away" and not (i < j):
+                continue
+            if probs[i][j] > best_p:
+                best_p = probs[i][j]
+                best_i, best_j = i, j
+
+    # Fallback: if no matching cell (shouldn't happen), use heuristic
+    if best_p < 0:
+        if outcome == "home":
+            return max(1, round(home_lambda)), max(0, round(away_lambda * 0.7)), 0.0
+        elif outcome == "draw":
+            g = max(1, min(round((home_lambda + away_lambda) / 2), 3))
+            return g, g, 0.0
+        else:
+            return max(0, round(home_lambda * 0.7)), max(1, round(away_lambda)), 0.0
+
+    return best_i, best_j, round(best_p, 4)
+
+
 def match_probabilities(elo_home, elo_away, neutral=True):
     """Predict match outcome probabilities using Poisson model.
 
@@ -124,3 +163,107 @@ def predict_match(home_team, away_team, dataset, neutral=True):
         return {"home": 0.40, "draw": 0.30, "away": 0.30}
 
     return match_probabilities(home_elo, away_elo, neutral=neutral)
+
+
+# --- Attack/Defense Decomposition ---
+
+
+def expected_goals_decomposed(attack_home, defense_away, attack_away, defense_home,
+                              neutral=True):
+    """Estimate expected goals using decomposed attack/defense strengths.
+
+    attack/defense are multipliers relative to league average (1.0 = average).
+    attack > 1.0 means above-average scoring; defense > 1.0 means below-average
+    defending (concedes more than average).
+
+    Formula: lambda_home = attack_home × defense_away × league_avg + home_adv
+    """
+    league_avg = AVG_GOALS / 2  # ~1.35 goals per team per match
+    ha = 0 if neutral else HOME_ADVANTAGE_GOALS
+
+    home_lambda = attack_home * defense_away * league_avg + ha
+    away_lambda = attack_away * defense_home * league_avg
+
+    return max(0.2, home_lambda), max(0.2, away_lambda)
+
+
+def match_probabilities_decomposed(attack_home, defense_home,
+                                    attack_away, defense_away, neutral=True):
+    """Predict match outcome using decomposed attack/defense strengths.
+
+    Returns same shape as match_probabilities.
+    """
+    home_lambda, away_lambda = expected_goals_decomposed(
+        attack_home, defense_away, attack_away, defense_home, neutral=neutral)
+
+    probs = score_probability(home_lambda, away_lambda)
+    probs = dixon_coles_adjust(probs, home_lambda, away_lambda)
+
+    prob_home = 0.0
+    prob_draw = 0.0
+    prob_away = 0.0
+
+    for i in range(MAX_GOALS + 1):
+        for j in range(MAX_GOALS + 1):
+            if i > j:
+                prob_home += probs[i][j]
+            elif i == j:
+                prob_draw += probs[i][j]
+            else:
+                prob_away += probs[i][j]
+
+    max_i, max_j = _argmax_2d(probs)
+
+    return {
+        "home": round(prob_home, 4),
+        "draw": round(prob_draw, 4),
+        "away": round(prob_away, 4),
+        "home_lambda": round(home_lambda, 2),
+        "away_lambda": round(away_lambda, 2),
+        "most_likely_score": f"{max_i}-{max_j}",
+        "most_likely_prob": round(probs[max_i][max_j], 4),
+    }
+
+
+def compute_strengths(dataset, min_matches=5):
+    """Compute attack/defense strength multipliers from team dataset.
+
+    Uses goals_for, goals_against, and matches_played fields.
+    Applies regression to the mean — multipliers shrink toward 1.0
+    when sample size is small, preventing single-match outliers from
+    dominating predictions.
+
+    Args:
+        dataset: dict of {team_name: {goals_for, goals_against, matches_played}}
+        min_matches: matches needed for full trust (default 5)
+
+    Returns (attack, defense) dicts keyed by team name.
+    """
+    league_avg = AVG_GOALS / 2  # ~1.35 goals per team per match
+    attack = {}
+    defense = {}
+
+    for team, data in dataset.items():
+        if team.startswith("_"):
+            continue
+        gf = data.get("goals_for", data.get("goals_for_5", 0))
+        ga = data.get("goals_against", data.get("goals_against_5", 0))
+        matches = data.get("matches_played", len(data.get("recent_form", [])))
+
+        if matches > 0 and gf + ga > 0:
+            avg_gf = gf / matches
+            avg_ga = ga / matches
+
+            # Raw multipliers (capped at 2.0 — no team is 3× league average)
+            raw_att = max(0.3, min(2.0, avg_gf / league_avg))
+            raw_def = max(0.3, min(2.0, avg_ga / league_avg))
+
+            # Regress toward 1.0: small samples → close to average
+            trust = min(matches / min_matches, 1.0)
+            attack[team] = round(1.0 + (raw_att - 1.0) * trust, 2)
+            defense[team] = round(1.0 + (raw_def - 1.0) * trust, 2)
+        else:
+            attack[team] = 1.0
+            defense[team] = 1.0
+
+    return attack, defense

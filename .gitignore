@@ -10,3 +10,9 @@ data/forecast_api.json
 __pycache__/
 *.pyc
 .venv/
+
+# Backups
+*.bak
+data/historical/wc2026_results.json
+data/historical/xg/
+

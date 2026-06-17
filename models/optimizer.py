@@ -167,7 +167,33 @@ def recommend_double_match(matches, dataset, predictor, points_behind=0):
 
 
 def outcome_to_score(outcome, home_lambda, away_lambda):
-    """Convert an outcome pick to a realistic score prediction."""
+    """Find the most likely scoreline for a given outcome using the full
+    Poisson probability matrix (Dixon-Coles adjusted).
+
+    Falls back to the old heuristic if the Poisson model is unavailable.
+    """
+    from models.poisson import most_likely_score, dixon_coles_adjust, score_probability
+
+    probs = score_probability(home_lambda, away_lambda)
+    probs = dixon_coles_adjust(probs, home_lambda, away_lambda)
+
+    best_i, best_j, best_p = 0, 0, -1.0
+    for i in range(len(probs)):
+        for j in range(len(probs[0])):
+            if outcome == "home" and i <= j:
+                continue
+            if outcome == "draw" and i != j:
+                continue
+            if outcome == "away" and i >= j:
+                continue
+            if probs[i][j] > best_p:
+                best_p = probs[i][j]
+                best_i, best_j = i, j
+
+    if best_p > 0:
+        return f"{best_i}-{best_j}"
+
+    # Fallback heuristic
     if outcome == "home":
         h = max(1, round(home_lambda))
         a = max(0, round(away_lambda * 0.7))
@@ -208,3 +234,135 @@ def _reasoning(best, ev, points, behind, crowd_pcts=None, doubled=False):
         lines.append(f"Catch-up ({behind}pts behind)")
 
     return " | ".join(lines)
+
+
+# --- Risk-constrained batch optimization ---
+
+
+def _is_contrarian(outcome, crowd_pcts):
+    """An outcome is contrarian if it's not the crowd favorite."""
+    if not crowd_pcts:
+        return False
+    favorite = max(crowd_pcts, key=crowd_pcts.get)
+    return outcome != favorite
+
+
+def _contrarian_boost(outcome, ev, crowd_pcts, points):
+    """How much EV does the contrarian pick gain over the safe pick?"""
+    if not crowd_pcts:
+        return 0
+    safe_outcome = max(crowd_pcts, key=crowd_pcts.get)
+    safe_ev = ev.get(safe_outcome, 0)
+    return ev.get(outcome, 0) - safe_ev
+
+
+def recommend_batch(all_predictions, points_behind=0, max_contrarian=3, double_match_idx=None):
+    """Optimize picks across all matches with a contrarian budget.
+
+    Args:
+        all_predictions: list of (match_info, probs, points, crowd_pcts) tuples
+        points_behind: points behind leader (triggers catch-up mode)
+        max_contrarian: max number of contrarian picks allowed
+        double_match_idx: index of match to apply double points (or None)
+
+    Returns:
+        list of pick dicts (same shape as recommend_pick), matching input order
+    """
+    n = len(all_predictions)
+
+    # Step 1: compute EV for all outcomes across all matches
+    all_evs = []
+    for match_info, probs, points, crowd in all_predictions:
+        ev = expected_value(probs, points, crowd)
+        all_evs.append(ev)
+
+    # Step 2: for each match, determine the unconstrained best pick
+    # and whether it's contrarian
+    picks = []
+    contrarian_matches = []  # (idx, contrarian_boost)
+
+    for i, (ev, (match_info, probs, points, crowd)) in enumerate(zip(all_evs, all_predictions)):
+        doubled = (double_match_idx is not None and i == double_match_idx)
+        ev_copy = dict(ev)
+        if doubled:
+            ev_copy = {k: v * 2 for k, v in ev_copy.items()}
+
+        best = max(ev_copy, key=ev_copy.get)
+
+        # Catch-up logic (per-match, same as before)
+        if points_behind > CATCH_UP_THRESHOLD:
+            threshold = ev_copy[best] * 0.85
+            candidates = {}
+            for k, v in ev_copy.items():
+                if v >= threshold:
+                    candidates[k] = _total_points(k, points, crowd, doubled)
+            best = max(candidates, key=candidates.get)
+
+        contrarian = _is_contrarian(best, crowd)
+        boost = _contrarian_boost(best, ev_copy, crowd, points)
+
+        if contrarian:
+            contrarian_matches.append((i, boost))
+
+        # Compute score
+        home_lambda = probs.get("home_lambda", 1.4)
+        away_lambda = probs.get("away_lambda", 1.1)
+        score = outcome_to_score(best, home_lambda, away_lambda)
+
+        bonus_name, bonus_pts = estimate_bonus(crowd[best]) if crowd else (None, 0)
+        total_possible = _total_points(best, points, crowd, doubled)
+
+        picks.append({
+            "outcome": best,
+            "ev": round(ev_copy[best], 2),
+            "score": score,
+            "base_points": points[best],
+            "bonus_name": bonus_name,
+            "bonus_points": bonus_pts,
+            "total_possible": total_possible,
+            "doubled": doubled,
+            "contrarian": contrarian,
+            "reasoning": _reasoning(best, ev_copy, points, points_behind, crowd, doubled),
+        })
+
+    # Step 3: if we have too many contrarian picks, switch the weakest ones to safe
+    if len(contrarian_matches) > max_contrarian:
+        # Sort by contrarian boost (keep the highest-boost ones)
+        contrarian_matches.sort(key=lambda x: x[1], reverse=True)
+        keep_indices = {idx for idx, _ in contrarian_matches[:max_contrarian]}
+        switch_indices = {idx for idx, _ in contrarian_matches[max_contrarian:]}
+
+        for idx in switch_indices:
+            match_info, probs, points, crowd = all_predictions[idx]
+            doubled = (double_match_idx is not None and idx == double_match_idx)
+
+            # Switch to the safe pick (crowd favorite)
+            safe_outcome = max(crowd, key=crowd.get) if crowd else "home"
+            ev = all_evs[idx]
+            ev_copy = dict(ev)
+            if doubled:
+                ev_copy = {k: v * 2 for k, v in ev_copy.items()}
+
+            home_lambda = probs.get("home_lambda", 1.4)
+            away_lambda = probs.get("away_lambda", 1.1)
+            score = outcome_to_score(safe_outcome, home_lambda, away_lambda)
+            bonus_name, bonus_pts = estimate_bonus(crowd[safe_outcome]) if crowd else (None, 0)
+            total_possible = _total_points(safe_outcome, points, crowd, doubled)
+
+            picks[idx] = {
+                "outcome": safe_outcome,
+                "ev": round(ev_copy[safe_outcome], 2),
+                "score": score,
+                "base_points": points[safe_outcome],
+                "bonus_name": bonus_name,
+                "bonus_points": bonus_pts,
+                "total_possible": total_possible,
+                "doubled": doubled,
+                "contrarian": False,
+                "switched_from_contrarian": True,
+                "reasoning": f"Risk cap: switched to safe {safe_outcome} "
+                             f"(was {picks[idx]['outcome']}, "
+                             f"lost {picks[idx]['ev'] - ev_copy[safe_outcome]:.1f} EV)",
+            }
+
+    return picks
