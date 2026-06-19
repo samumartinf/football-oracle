@@ -942,6 +942,42 @@
     function pct(value) { return Math.round(value * 100) + "%"; }
     function fmt(value) { return Number(value).toFixed(1); }
 
+    function bonusForCrowd(pct) {
+      if (pct <= 0.02) return 200;
+      if (pct <= 0.05) return 100;
+      if (pct <= 0.10) return 50;
+      if (pct <= 0.15) return 25;
+      return 0;
+    }
+
+    function bonusName(pct) {
+      if (pct <= 0.02) return "megaRare";
+      if (pct <= 0.05) return "ultraRare";
+      if (pct <= 0.10) return "rare";
+      if (pct <= 0.15) return "veryRare";
+      return "";
+    }
+
+    var openPopover = null;
+    function renderEvPopoverBox(item, outcome) {
+      var selected = outcome === item.pick ? " selected" : "";
+      var basePts = item.points ? item.points[outcome] : 0;
+      var prob = item.probability ? item.probability[outcome] : 0;
+      var crowdPct = item.crowd ? item.crowd[outcome] : 1;
+      var bonus = bonusForCrowd(crowdPct);
+      var baseEv = prob * basePts;
+      var bonusEv = prob * bonus;
+      var totalEv = baseEv + bonusEv;
+      var uid = 'ev-' + item.match.replace(/[^a-zA-Z0-9]/g, '') + '-' + outcome;
+      return '<div class="ev-box' + selected + '" onclick="toggleEvPopover(event, \'' + uid + '\')">' +
+        '<div class="ev-popover" id="' + uid + '">' +
+          '<div class="ev-row"><span>Base ' + basePts + ' pts × ' + pct(prob) + '</span><span>' + fmt(baseEv) + '</span></div>' +
+          (bonus > 0 ? '<div class="ev-row"><span>+' + bonus + ' ' + bonusName(crowdPct) + ' × ' + pct(prob) + '</span><span>+' + fmt(bonusEv) + '</span></div>' : '') +
+          '<div class="ev-row ev-total"><span>Total EV</span><strong>' + fmt(totalEv) + '</strong></div>' +
+        '</div>' +
+        '<div class="ev-box-label">' + outcomeLabels[outcome] + ' EV</div><div class="ev-box-value">' + fmt(totalEv) + '</div></div>';
+    }
+
     function heatmapColor(prob, maxProb) {
       var i = maxProb > 0 ? prob / maxProb : 0;
       var r = Math.round(237 + (194-237)*i), g = Math.round(241 + (65-241)*i), b = Math.round(245 + (14-245)*i);
@@ -1055,9 +1091,9 @@
           '<div class="score">' + item.score + '</div>' +
           '<div class="pickline">EV ' + fmt(item.ev) + ' · ' + item.total + ' pts · swing ' + Math.round(swingScore(item)) + '</div>' +
           '<div class="ev-panel">' +
-            '<div class="ev-box' + (item.pick==="home"?" selected":"") + '"><div class="ev-box-label">Home EV</div><div class="ev-box-value">' + fmt(evFor(item,"home")) + '</div></div>' +
-            '<div class="ev-box' + (item.pick==="draw"?" selected":"") + '"><div class="ev-box-label">Draw EV</div><div class="ev-box-value">' + fmt(evFor(item,"draw")) + '</div></div>' +
-            '<div class="ev-box' + (item.pick==="away"?" selected":"") + '"><div class="ev-box-label">Away EV</div><div class="ev-box-value">' + fmt(evFor(item,"away")) + '</div></div>' +
+            renderEvPopoverBox(item, "home") +
+            renderEvPopoverBox(item, "draw") +
+            renderEvPopoverBox(item, "away") +
           '</div>' +
         '</div>' +
       '</article>';
@@ -1092,6 +1128,15 @@
         return swingScore(b) - swingScore(a);
       });
       return rows;
+    }
+
+    function toggleEvPopover(e, uid) {
+      e.stopPropagation();
+      var el = document.getElementById(uid);
+      if (!el) return;
+      if (openPopover && openPopover !== el) openPopover.classList.remove("open");
+      el.classList.toggle("open");
+      openPopover = el.classList.contains("open") ? el : null;
     }
 
     function render() {
@@ -1273,10 +1318,15 @@
     document.getElementById("sorter").addEventListener("change", render);
     document.getElementById("runSim").addEventListener("click", function() {
       renderSimulation();
-      // Re-merge MC data after sim (updates predictions with model_probs etc)
       mergeMCData();
       render();
     });
+
+    // Close EV popover on outside click
+    document.addEventListener("click", function() {
+      if (openPopover) { openPopover.classList.remove("open"); openPopover = null; }
+    });
+
     render();
     renderSimulation();
   </script>
