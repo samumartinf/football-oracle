@@ -340,6 +340,148 @@
       border-radius: 3px;
     }
 
+  .heatmap-toggle {
+      cursor: pointer;
+      font-size: 11px;
+      color: var(--home);
+      margin-left: 6px;
+      font-weight: 500;
+      user-select: none;
+    }
+    .heatmap-panel {
+      display: none;
+      margin-top: 10px;
+      padding: 8px;
+      background: #fbfcfe;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+    .heatmap-panel.open {
+      display: block;
+    }
+    .heatmap-grid {
+      display: grid;
+      grid-template-columns: 24px repeat(7, 1fr);
+      gap: 1px;
+      font-size: 10px;
+      text-align: center;
+    }
+    .heatmap-label {
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+    }
+    .heatmap-cell {
+      aspect-ratio: 1;
+      border-radius: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      color: transparent;
+      min-width: 0;
+    }
+    .heatmap-cell:hover {
+      color: var(--ink);
+      font-weight: 700;
+      font-size: 10px;
+    }
+    .heatmap-legend {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      margin-top: 6px;
+      font-size: 10px;
+      color: var(--muted);
+    }
+    .heatmap-legend span {
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+      display: inline-block;
+    }
+
+    .model-breakdown {
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .model-breakdown .mb-label {
+      font-weight: 600;
+      margin-bottom: 3px;
+    }
+    .mb-outcome {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: 2px 0;
+    }
+    .mb-outcome-name {
+      width: 32px;
+      font-size: 10px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .mb-track {
+      flex: 1;
+      height: 10px;
+      background: #edf1f5;
+      border-radius: 999px;
+      overflow: hidden;
+      display: flex;
+    }
+    .mb-seg {
+      height: 100%;
+    }
+    .mb-seg.elo { background: #2f80ed; }
+    .mb-seg.decomposed { background: #8a6fdf; }
+    .mb-seg.market { background: #0f9f6e; }
+    .mb-seg.xg { background: #c2410c; }
+    .mb-seg-legend {
+      display: flex;
+      gap: 8px;
+      margin-top: 2px;
+      font-size: 9px;
+    }
+    .mb-seg-legend span::before {
+      content: "";
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      margin-right: 3px;
+      vertical-align: middle;
+    }
+    .mb-seg-legend .l-elo::before { background: #2f80ed; }
+    .mb-seg-legend .l-decomposed::before { background: #8a6fdf; }
+    .mb-seg-legend .l-market::before { background: #0f9f6e; }
+    .mb-seg-legend .l-xg::before { background: #c2410c; }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+    .status-badge.live {
+      background: #fef3c7;
+      color: #92400e;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    .status-badge.finished {
+      background: #eafaf4;
+      color: #067647;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
 .empty {
       display: none;
       background: var(--panel);
@@ -706,6 +848,23 @@
     }
     buildActualsMap();
 
+    // Merge model_probs, score_matrix, status from MC results into predictions
+    function mergeMCData() {
+      if (!window.MONTE_CARLO_RESULTS || !window.MONTE_CARLO_RESULTS.rows) return;
+      var mcRows = window.MONTE_CARLO_RESULTS.rows;
+      predictions.forEach(function(p) {
+        var mc = mcRows.find(function(r) { return r.match === p.match; });
+        if (mc) {
+          if (mc.model_probs) p.model_probs = mc.model_probs;
+          if (mc.score_matrix) p.score_matrix = mc.score_matrix;
+          if (mc.status) p.status = mc.status;
+          if (mc.live_home !== undefined) p.live_home = mc.live_home;
+          if (mc.live_away !== undefined) p.live_away = mc.live_away;
+        }
+      });
+    }
+    mergeMCData();
+
     let filter = "all";
 
     const outcomeLabels = { home: "Home", draw: "Draw", away: "Away" };
@@ -940,6 +1099,7 @@
 
       renderActuals(result.actuals);
       buildActualsMap();
+      mergeMCData();
       render();
     }
 
@@ -1041,17 +1201,107 @@
             </div>
           </div>
           <div class="details">
-            <div class="score">${item.score}</div>
-            <div class="pickline">EV ${fmt(item.ev)} | total ${item.total} | swing ${Math.round(swingScore(item))}</div>
+            <div class="score">${item.score} ${renderStatusBadge(item)}</div>
+            <div class="pickline">EV ${fmt(item.ev)} | total ${item.total} | swing ${Math.round(swingScore(item))} <span class="heatmap-toggle" onclick="toggleHeatmap(this)">Score grid ▸</span></div>
             <div class="ev-panel">
               ${renderEvBox(item, "home")}
               ${renderEvBox(item, "draw")}
               ${renderEvBox(item, "away")}
             </div>
+            ${renderHeatmap(item)}
+            ${renderModelBreakdown(item)}
           </div>
           ${renderActualOnCard(item)}
         </article>
       `;
+    }
+
+    function heatmapColor(prob, maxProb) {
+      var intensity = maxProb > 0 ? prob / maxProb : 0;
+      var r, g, b;
+      if (intensity < 0.5) {
+        var s = intensity * 2;
+        r = Math.round(237 + (255 - 237) * s);
+        g = Math.round(241 + (200 - 241) * s);
+        b = Math.round(245 + (150 - 245) * s);
+      } else {
+        var s = (intensity - 0.5) * 2;
+        r = Math.round(255 + (194 - 255) * s);
+        g = Math.round(200 + (65 - 200) * s);
+        b = Math.round(150 + (14 - 150) * s);
+      }
+      return "rgb(" + r + "," + g + "," + b + ")";
+    }
+
+    function toggleHeatmap(el) {
+      var panel = el.parentElement.parentElement.querySelector(".heatmap-panel");
+      if (panel) {
+        panel.classList.toggle("open");
+        el.textContent = panel.classList.contains("open") ? "Score grid ▾" : "Score grid ▸";
+      }
+    }
+
+    function renderHeatmap(item) {
+      if (!item.score_matrix) return "";
+      var grid = item.score_matrix;
+      var maxProb = 0;
+      for (var i = 0; i < grid.length; i++) {
+        for (var j = 0; j < grid[i].length; j++) {
+          if (grid[i][j] > maxProb) maxProb = grid[i][j];
+        }
+      }
+      var html = '<div class="heatmap-panel"><div class="heatmap-grid">';
+      html += '<div></div>';
+      for (var j = 0; j < 7; j++) html += '<div class="heatmap-label">' + j + '</div>';
+      for (var i = 0; i < 7; i++) {
+        html += '<div class="heatmap-label">' + i + '</div>';
+        for (var j = 0; j < 7; j++) {
+          var prob = grid[i][j] || 0;
+          var bg = heatmapColor(prob, maxProb);
+          html += '<div class="heatmap-cell" style="background:' + bg + '" title="' + i + '-' + j + ': ' + (prob*100).toFixed(1) + '%">' + (prob*100).toFixed(0) + '</div>';
+        }
+      }
+      html += '</div><div class="heatmap-legend">Home goals → | Away goals ↓ | <span style="background:#edf1f5"></span> 0% <span style="background:rgb(255,200,150)"></span> ' + (maxProb*100).toFixed(1) + '%</div></div>';
+      return html;
+    }
+
+    function renderModelBreakdown(item) {
+      if (!item.model_probs) return "";
+      var outcomes = ["home", "draw", "away"];
+      var modelOrder = ["elo", "decomposed", "market", "xg"];
+      var modelColors = {"elo": "elo", "decomposed": "decomposed", "market": "market", "xg": "xg"};
+      var html = '<div class="model-breakdown"><div class="mb-label">Model contributions</div>';
+      for (var o = 0; o < outcomes.length; o++) {
+        var outcome = outcomes[o];
+        var total = 0;
+        var segs = [];
+        for (var m = 0; m < modelOrder.length; m++) {
+          var model = modelOrder[m];
+          if (item.model_probs[model] && item.model_probs[model][outcome] !== undefined) {
+            var p = item.model_probs[model][outcome];
+            total += p;
+            segs.push({model: model, p: p});
+          }
+        }
+        if (total === 0) continue;
+        html += '<div class="mb-outcome"><div class="mb-outcome-name">' + outcomeLabels[outcome] + '</div><div class="mb-track">';
+        for (var s = 0; s < segs.length; s++) {
+          var w = (segs[s].p / total) * 100;
+          html += '<div class="mb-seg ' + modelColors[segs[s].model] + '" style="width:' + w + '%"></div>';
+        }
+        html += '</div><span style="font-size:10px">' + pct(total) + '</span></div>';
+      }
+      html += '<div class="mb-seg-legend"><span class="l-elo">Elo</span><span class="l-decomposed">Decomposed</span><span class="l-market">Market</span></div></div>';
+      return html;
+    }
+
+    function renderStatusBadge(item) {
+      if (!item.status || item.status === "unknown" || item.status === "notStarted") return "";
+      if (item.status === "fullTime" || item.status === "finished") {
+        return '<span class="status-badge finished">FT</span>';
+      }
+      var score = (item.live_home !== undefined ? item.live_home : "?") + "-" + (item.live_away !== undefined ? item.live_away : "?");
+      return '<span class="status-badge live">LIVE ' + score + '</span>';
     }
 
     function render() {

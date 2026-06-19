@@ -87,6 +87,16 @@ def load_matches(use_live=False):
             },
             "match_id": match["match_id"],
         })
+    for match in matches:
+        api_match = next(
+            (m for m in (api_matches if use_live else []) if m.get("match_id") == match.get("match_id")), None
+        )
+        if api_match:
+            match["status"] = api_match.get("period", "notStarted")
+            match["live_home"] = api_match.get("home_score")
+            match["live_away"] = api_match.get("away_score")
+        else:
+            match["status"] = "unknown"
     return matches
 
 
@@ -130,6 +140,33 @@ def enrich_probabilities(dataset, predictor, match):
         probs["away_lambda"] = elo_al * (1 - form_trust) + away_form_lam * form_trust
     else:
         probs["away_lambda"] = elo_al
+
+    # Per-model probabilities for the viewer
+    model_probs = {}
+    for model_name, model in result.get("models", {}).items():
+        model_probs[model_name] = {
+            outcome: round(model[outcome], 4)
+            for outcome in OUTCOMES
+            if outcome in model
+        }
+    if model_probs:
+        probs["model_probs"] = model_probs
+
+    # Full 11×11 Dixon-Coles score probability matrix for heatmap
+    sp = score_probability(probs.get("home_lambda", 1.4), probs.get("away_lambda", 1.1))
+    sp = dixon_coles_adjust(sp, probs.get("home_lambda", 1.4), probs.get("away_lambda", 1.1))
+    # Truncate to 7×7 (scores beyond 6 are negligible) and round
+    max_goals = 7
+    score_grid = []
+    for i in range(max_goals):
+        row = []
+        for j in range(max_goals):
+            if i < len(sp) and j < len(sp[0]):
+                row.append(round(sp[i][j], 5))
+            else:
+                row.append(0.0)
+        score_grid.append(row)
+    probs["score_matrix"] = score_grid
 
     return probs
 
@@ -304,18 +341,27 @@ def write_html_results(path, predictions, oracle_picks, crowd_picks, oracle_tota
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     rows = []
-    for (match, _probs, _points, crowd), oracle, crowd_pick in zip(
+    for (match, probs, _points, crowd), oracle, crowd_pick in zip(
         predictions,
         oracle_picks,
         crowd_picks,
     ):
-        rows.append({
+        row = {
             "match": f"{match['home']} v {match['away']}",
             "oracle": f"{oracle['outcome']} {oracle['score']}",
             "crowd": f"{crowd_pick['outcome']} {crowd_pick['score']}",
             "ev": oracle.get("ev", 0),
             "swing": oracle["outcome"] != crowd_favorite(crowd),
-        })
+        }
+        if "model_probs" in probs:
+            row["model_probs"] = probs["model_probs"]
+        if "score_matrix" in probs:
+            row["score_matrix"] = probs["score_matrix"]
+        if "status" in match:
+            row["status"] = match["status"]
+            row["live_home"] = match.get("live_home")
+            row["live_away"] = match.get("live_away")
+        rows.append(row)
 
     payload = {
         "source": "python",
