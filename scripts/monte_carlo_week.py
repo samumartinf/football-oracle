@@ -352,6 +352,14 @@ def write_html_results(path, predictions, oracle_picks, crowd_picks, oracle_tota
             "crowd": f"{crowd_pick['outcome']} {crowd_pick['score']}",
             "ev": oracle.get("ev", 0),
             "swing": oracle["outcome"] != crowd_favorite(crowd),
+            "probability": {
+                "home": round(probs.get("home", 0), 4),
+                "draw": round(probs.get("draw", 0), 4),
+                "away": round(probs.get("away", 0), 4),
+            },
+            "crowd_pcts": crowd,
+            "total": oracle.get("total_possible", 0),
+            "bonus": f"+{oracle.get('bonus_points', 0)} {oracle.get('bonus_name', '')}" if oracle.get('bonus_name') else "",
         }
         if "model_probs" in probs:
             row["model_probs"] = probs["model_probs"]

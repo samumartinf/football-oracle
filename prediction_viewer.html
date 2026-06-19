@@ -467,6 +467,15 @@
       predictions.forEach(function(p) {
         var mc = mcRows.find(function(r) { return r.match === p.match; });
         if (mc) {
+          p.ev = mc.ev || p.ev;
+          if (mc.probability) p.probability = mc.probability;
+          if (mc.crowd_pcts) p.crowd = mc.crowd_pcts;
+          if (mc.total) p.total = mc.total;
+          if (mc.bonus) p.bonus = mc.bonus;
+          if (mc.oracle) {
+            var parts = mc.oracle.split(' ');
+            if (parts.length >= 2) { p.pick = parts[0]; p.score = parts[1]; }
+          }
           if (mc.model_probs) p.model_probs = mc.model_probs;
           if (mc.score_matrix) p.score_matrix = mc.score_matrix;
           if (mc.status) p.status = mc.status;
@@ -486,7 +495,18 @@
       var favorite = crowdFavorite(item);
       return item.total * ((item.crowd[favorite]||0) - (item.crowd[item.pick]||0) + 0.2);
     }
-    function evFor(item, outcome) { return item.probability[outcome] * item.points[outcome]; }
+    function bonusForCrowd(pct) {
+      if (pct <= 0.02) return 200;
+      if (pct <= 0.05) return 100;
+      if (pct <= 0.10) return 50;
+      if (pct <= 0.15) return 25;
+      return 0;
+    }
+    function evFor(item, outcome) {
+      var base = item.probability[outcome] * item.points[outcome];
+      var bonus = item.probability[outcome] * bonusForCrowd(item.crowd[outcome] || 1);
+      return base + bonus;
+    }
     function pct(value) { return Math.round(value * 100) + "%"; }
     function fmt(value) { return Number(value).toFixed(1); }
 

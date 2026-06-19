@@ -10,6 +10,18 @@ window.MONTE_CARLO_RESULTS = {
       "crowd": "home 2-1",
       "ev": 50.77,
       "swing": true,
+      "probability": {
+        "home": 0.5148,
+        "draw": 0.2423,
+        "away": 0.2429
+      },
+      "crowd_pcts": {
+        "home": 0.8,
+        "draw": 0.14,
+        "away": 0.06
+      },
+      "total": 234,
+      "bonus": "+50 rare",
       "model_probs": {
         "elo": {
           "home": 0.7121,
@@ -99,6 +111,18 @@ window.MONTE_CARLO_RESULTS = {
       "crowd": "home 2-1",
       "ev": 22.31,
       "swing": false,
+      "probability": {
+        "home": 0.5872,
+        "draw": 0.2405,
+        "away": 0.1723
+      },
+      "crowd_pcts": {
+        "home": 0.83,
+        "draw": 0.14,
+        "away": 0.03
+      },
+      "total": 63,
+      "bonus": "",
       "model_probs": {
         "elo": {
           "home": 0.5483,
@@ -188,6 +212,18 @@ window.MONTE_CARLO_RESULTS = {
       "crowd": "home 2-1",
       "ev": 53.8,
       "swing": true,
+      "probability": {
+        "home": 0.6436,
+        "draw": 0.211,
+        "away": 0.1454
+      },
+      "crowd_pcts": {
+        "home": 0.95,
+        "draw": 0.04,
+        "away": 0.01
+      },
+      "total": 395,
+      "bonus": "+200 megaRare",
       "model_probs": {
         "elo": {
           "home": 0.6811,
@@ -277,6 +313,18 @@ window.MONTE_CARLO_RESULTS = {
       "crowd": "home 2-1",
       "ev": 30.6,
       "swing": false,
+      "probability": {
+        "home": 0.5186,
+        "draw": 0.2424,
+        "away": 0.239
+      },
+      "crowd_pcts": {
+        "home": 0.57,
+        "draw": 0.35,
+        "away": 0.08
+      },
+      "total": 84,
+      "bonus": "",
       "model_probs": {
         "elo": {
           "home": 0.5103,
@@ -366,6 +414,18 @@ window.MONTE_CARLO_RESULTS = {
       "crowd": "home 2-1",
       "ev": 80.91,
       "swing": true,
+      "probability": {
+        "home": 0.2641,
+        "draw": 0.2486,
+        "away": 0.4874
+      },
+      "crowd_pcts": {
+        "home": 0.6,
+        "draw": 0.33,
+        "away": 0.07
+      },
+      "total": 191,
+      "bonus": "+50 rare",
       "model_probs": {
         "elo": {
           "home": 0.2101,
@@ -455,6 +515,18 @@ window.MONTE_CARLO_RESULTS = {
       "crowd": "away 1-2",
       "ev": 27.94,
       "swing": false,
+      "probability": {
+        "home": 0.1483,
+        "draw": 0.2167,
+        "away": 0.635
+      },
+      "crowd_pcts": {
+        "home": 0.03,
+        "draw": 0.07,
+        "away": 0.9
+      },
+      "total": 69,
+      "bonus": "",
       "model_probs": {
         "elo": {
           "home": 0.1232,
@@ -544,6 +616,18 @@ window.MONTE_CARLO_RESULTS = {
       "crowd": "home 2-1",
       "ev": 57.8,
       "swing": true,
+      "probability": {
+        "home": 0.3761,
+        "draw": 0.2778,
+        "away": 0.3461
+      },
+      "crowd_pcts": {
+        "home": 0.58,
+        "draw": 0.27,
+        "away": 0.15
+      },
+      "total": 192,
+      "bonus": "+25 veryRare",
       "model_probs": {
         "elo": {
           "home": 0.3934,
@@ -633,6 +717,18 @@ window.MONTE_CARLO_RESULTS = {
       "crowd": "home 2-1",
       "ev": 33.57,
       "swing": false,
+      "probability": {
+        "home": 0.4417,
+        "draw": 0.2347,
+        "away": 0.3237
+      },
+      "crowd_pcts": {
+        "home": 0.72,
+        "draw": 0.21,
+        "away": 0.06
+      },
+      "total": 101,
+      "bonus": "",
       "model_probs": {
         "elo": {
           "home": 0.6226,
@@ -722,6 +818,18 @@ window.MONTE_CARLO_RESULTS = {
       "crowd": "home 2-1",
       "ev": 37.74,
       "swing": false,
+      "probability": {
+        "home": 0.5316,
+        "draw": 0.1934,
+        "away": 0.275
+      },
+      "crowd_pcts": {
+        "home": 0.76,
+        "draw": 0.17,
+        "away": 0.07
+      },
+      "total": 96,
+      "bonus": "",
       "model_probs": {
         "elo": {
           "home": 0.6803,
