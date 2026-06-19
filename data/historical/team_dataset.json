@@ -1,7 +1,7 @@
 {
   "Ghana": {
     "name": "Ghana",
-    "elo": 1510,
+    "elo": 1557,
     "recent_form": [],
     "goals_for": 0,
     "goals_against": 0,
@@ -15,7 +15,7 @@
   },
   "Canada": {
     "name": "Canada",
-    "elo": 1757,
+    "elo": 1777,
     "recent_form": [
       "L",
       "L",
@@ -29,7 +29,7 @@
   },
   "Algeria": {
     "name": "Algeria",
-    "elo": 1768,
+    "elo": 1759,
     "recent_form": [
       "W",
       "W",
@@ -50,7 +50,7 @@
   },
   "Panama": {
     "name": "Panama",
-    "elo": 1730,
+    "elo": 1683,
     "recent_form": [],
     "goals_for": 0,
     "goals_against": 0,
@@ -64,7 +64,7 @@
   },
   "Argentina": {
     "name": "Argentina",
-    "elo": 2119,
+    "elo": 2128,
     "recent_form": [
       "L",
       "W",
@@ -106,7 +106,7 @@
   },
   "Jordan": {
     "name": "Jordan",
-    "elo": 1671,
+    "elo": 1653,
     "recent_form": [
       "L",
       "W",
@@ -127,7 +127,7 @@
   },
   "Austria": {
     "name": "Austria",
-    "elo": 1839,
+    "elo": 1857,
     "recent_form": [
       "D",
       "W",
@@ -148,7 +148,7 @@
   },
   "Uzbekistan": {
     "name": "Uzbekistan",
-    "elo": 1714,
+    "elo": 1698,
     "recent_form": [],
     "goals_for": 0,
     "goals_against": 0,
@@ -162,7 +162,7 @@
   },
   "Portugal": {
     "name": "Portugal",
-    "elo": 1989,
+    "elo": 1967,
     "recent_form": [],
     "goals_for": 0,
     "goals_against": 0,
@@ -176,7 +176,7 @@
   },
   "France": {
     "name": "France",
-    "elo": 2090,
+    "elo": 2084,
     "recent_form": [
       "W",
       "W",
@@ -197,7 +197,7 @@
   },
   "Norway": {
     "name": "Norway",
-    "elo": 1940,
+    "elo": 1929,
     "recent_form": [
       "W",
       "W",
@@ -218,7 +218,7 @@
   },
   "DR Congo": {
     "name": "DR Congo",
-    "elo": 1652,
+    "elo": 1674,
     "recent_form": [],
     "goals_for": 0,
     "goals_against": 0,
@@ -232,7 +232,7 @@
   },
   "England": {
     "name": "England",
-    "elo": 2024,
+    "elo": 2055,
     "recent_form": [],
     "goals_for": 0,
     "goals_against": 0,
@@ -246,7 +246,7 @@
   },
   "Croatia": {
     "name": "Croatia",
-    "elo": 1912,
+    "elo": 1881,
     "recent_form": [],
     "goals_for": 0,
     "goals_against": 0,
@@ -260,7 +260,7 @@
   },
   "Colombia": {
     "name": "Colombia",
-    "elo": 1982,
+    "elo": 1998,
     "recent_form": [],
     "goals_for": 0,
     "goals_against": 0,
@@ -274,7 +274,7 @@
   },
   "Bosnia": {
     "name": "Bosnia",
-    "elo": 1626,
+    "elo": 1596,
     "recent_form": [
       "D",
       "D",
@@ -295,7 +295,7 @@
   },
   "Senegal": {
     "name": "Senegal",
-    "elo": 1833,
+    "elo": 1839,
     "recent_form": [
       "W",
       "W",
@@ -316,7 +316,7 @@
   },
   "Iraq": {
     "name": "Iraq",
-    "elo": 1581,
+    "elo": 1592,
     "recent_form": [
       "W",
       "W",
@@ -337,7 +337,7 @@
   },
   "Qatar": {
     "name": "Qatar",
-    "elo": 1459,
+    "elo": 1437,
     "recent_form": [
       "W",
       "D",
@@ -358,7 +358,7 @@
   },
   "Switzerland": {
     "name": "Switzerland",
-    "elo": 1853,
+    "elo": 1885,
     "recent_form": [
       "D",
       "W",
@@ -379,7 +379,7 @@
   },
   "Spain": {
     "name": "Spain",
-    "elo": 2114,
+    "elo": 2129,
     "goals_for": 0,
     "goals_against": 0,
     "matches_played": 1,
@@ -389,7 +389,7 @@
   },
   "Brazil": {
     "name": "Brazil",
-    "elo": 1968,
+    "elo": 1978,
     "goals_for": 1,
     "goals_against": 1,
     "matches_played": 1,
@@ -399,7 +399,7 @@
   },
   "Netherlands": {
     "name": "Netherlands",
-    "elo": 1938,
+    "elo": 1944,
     "goals_for": 2,
     "goals_against": 2,
     "matches_played": 1,
@@ -409,7 +409,7 @@
   },
   "Germany": {
     "name": "Germany",
-    "elo": 1941,
+    "elo": 1939,
     "goals_for": 7,
     "goals_against": 1,
     "matches_played": 1,
@@ -419,7 +419,7 @@
   },
   "Japan": {
     "name": "Japan",
-    "elo": 1916,
+    "elo": 1910,
     "goals_for": 2,
     "goals_against": 2,
     "matches_played": 1,
@@ -429,7 +429,7 @@
   },
   "Ecuador": {
     "name": "Ecuador",
-    "elo": 1867,
+    "elo": 1890,
     "goals_for": 0,
     "goals_against": 1,
     "matches_played": 1,
@@ -439,7 +439,7 @@
   },
   "Mexico": {
     "name": "Mexico",
-    "elo": 1884,
+    "elo": 1881,
     "goals_for": 2,
     "goals_against": 0,
     "matches_played": 1,
@@ -449,7 +449,7 @@
   },
   "Belgium": {
     "name": "Belgium",
-    "elo": 1869,
+    "elo": 1879,
     "goals_for": 1,
     "goals_against": 1,
     "matches_played": 1,
@@ -459,7 +459,7 @@
   },
   "Uruguay": {
     "name": "Uruguay",
-    "elo": 1863,
+    "elo": 1870,
     "goals_for": 1,
     "goals_against": 1,
     "matches_played": 1,
@@ -469,7 +469,7 @@
   },
   "T\u00fcrkiye": {
     "name": "T\u00fcrkiye",
-    "elo": 1831,
+    "elo": 1849,
     "goals_for": 0,
     "goals_against": 2,
     "matches_played": 1,
@@ -479,7 +479,7 @@
   },
   "Morocco": {
     "name": "Morocco",
-    "elo": 1850,
+    "elo": 1840,
     "goals_for": 1,
     "goals_against": 1,
     "matches_played": 1,
@@ -489,7 +489,7 @@
   },
   "Australia": {
     "name": "Australia",
-    "elo": 1857,
+    "elo": 1839,
     "goals_for": 2,
     "goals_against": 0,
     "matches_played": 1,
@@ -499,7 +499,7 @@
   },
   "South Korea": {
     "name": "South Korea",
-    "elo": 1791,
+    "elo": 1786,
     "goals_for": 2,
     "goals_against": 1,
     "matches_played": 1,
@@ -509,7 +509,7 @@
   },
   "Paraguay": {
     "name": "Paraguay",
-    "elo": 1760,
+    "elo": 1780,
     "goals_for": 1,
     "goals_against": 4,
     "matches_played": 1,
@@ -519,7 +519,7 @@
   },
   "United States": {
     "name": "United States",
-    "elo": 1800,
+    "elo": 1780,
     "goals_for": 4,
     "goals_against": 1,
     "matches_played": 1,
@@ -529,7 +529,7 @@
   },
   "Iran": {
     "name": "Iran",
-    "elo": 1745,
+    "elo": 1756,
     "goals_for": 2,
     "goals_against": 2,
     "matches_played": 1,
@@ -539,7 +539,7 @@
   },
   "Sweden": {
     "name": "Sweden",
-    "elo": 1765,
+    "elo": 1755,
     "goals_for": 5,
     "goals_against": 1,
     "matches_played": 1,
@@ -549,7 +549,7 @@
   },
   "Ivory Coast": {
     "name": "Ivory Coast",
-    "elo": 1766,
+    "elo": 1743,
     "goals_for": 1,
     "goals_against": 0,
     "matches_played": 1,
@@ -559,7 +559,7 @@
   },
   "Czechia": {
     "name": "Czechia",
-    "elo": 1556,
+    "elo": 1696,
     "recent_form": [
       "D",
       "D",
@@ -580,7 +580,7 @@
   },
   "Egypt": {
     "name": "Egypt",
-    "elo": 1721,
+    "elo": 1711,
     "goals_for": 1,
     "goals_against": 1,
     "matches_played": 1,
@@ -590,7 +590,7 @@
   },
   "Cape Verde": {
     "name": "Cape Verde",
-    "elo": 1621,
+    "elo": 1606,
     "goals_for": 0,
     "goals_against": 0,
     "matches_played": 1,
@@ -600,7 +600,7 @@
   },
   "Saudi Arabia": {
     "name": "Saudi Arabia",
-    "elo": 1605,
+    "elo": 1598,
     "goals_for": 1,
     "goals_against": 1,
     "matches_played": 1,
@@ -610,7 +610,7 @@
   },
   "Tunisia": {
     "name": "Tunisia",
-    "elo": 1575,
+    "elo": 1585,
     "goals_for": 1,
     "goals_against": 5,
     "matches_played": 1,
@@ -620,7 +620,7 @@
   },
   "New Zealand": {
     "name": "New Zealand",
-    "elo": 1589,
+    "elo": 1578,
     "goals_for": 2,
     "goals_against": 2,
     "matches_played": 1,
@@ -630,7 +630,7 @@
   },
   "Haiti": {
     "name": "Haiti",
-    "elo": 1520,
+    "elo": 1536,
     "goals_for": 0,
     "goals_against": 1,
     "matches_played": 1,
@@ -640,7 +640,7 @@
   },
   "Cura\u00e7ao": {
     "name": "Cura\u00e7ao",
-    "elo": 1425,
+    "elo": 1427,
     "goals_for": 1,
     "goals_against": 7,
     "matches_played": 1,
@@ -939,5 +939,13 @@
     "D",
     "W",
     "D"
-  ]
+  ],
+  "_pre_elo_DR Congo": 1652,
+  "_pre_elo_Colombia": 1982,
+  "_pre_elo_England": 2024,
+  "_pre_elo_Ghana": 1510,
+  "_pre_elo_Croatia": 1912,
+  "_pre_elo_Panama": 1730,
+  "_pre_elo_Portugal": 1989,
+  "_pre_elo_Uzbekistan": 1714
 }
