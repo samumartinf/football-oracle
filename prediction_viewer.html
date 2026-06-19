@@ -3,638 +3,328 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Football Oracle Predictions</title>
+  <title>Football Oracle — MPP Predictions</title>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    :root {
-      color-scheme: light;
-      --ink: #17202a;
-      --muted: #667085;
-      --line: #d8dde6;
-      --paper: #f7f9fb;
-      --panel: #ffffff;
-      --home: #2f80ed;
-      --draw: #8a6fdf;
-      --away: #0f9f6e;
-      --risk: #c2410c;
-      --safe: #475467;
-    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    * {
-      box-sizing: border-box;
+    :root {
+      --black: #171717;
+      --gray-600: #4d4d4d;
+      --gray-500: #666666;
+      --gray-400: #808080;
+      --gray-100: #ebebeb;
+      --gray-50: #fafafa;
+      --white: #ffffff;
+      --link: #0072f5;
+      --focus: hsla(212, 100%, 48%, 1);
+      --shadow-border: 0px 0px 0px 1px rgba(0,0,0,0.08);
+      --shadow-card: rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 4px;
+      --shadow-card-hover: rgba(0,0,0,0.12) 0px 0px 0px 1px, rgba(0,0,0,0.06) 0px 4px 8px;
+      --home: #0a72ef;
+      --draw: #7928ca;
+      --away: #10b981;
+      --risk: #ff5b4f;
+      --safe: #4d4d4d;
+      --radius-sm: 6px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --radius-pill: 9999px;
     }
 
     body {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      color: var(--ink);
-      background: var(--paper);
+      font-family: 'Geist', system-ui, -apple-system, sans-serif;
+      color: var(--black);
+      background: var(--white);
+      -webkit-font-smoothing: antialiased;
     }
 
     main {
-      width: min(1180px, calc(100% - 32px));
+      width: min(1100px, calc(100% - 48px));
       margin: 0 auto;
-      padding: 24px 0 40px;
+      padding: 32px 0 64px;
     }
 
+    /* ── Header ── */
     header {
-      display: grid;
-      grid-template-columns: 1fr auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
       gap: 16px;
-      align-items: end;
-      margin-bottom: 18px;
+      margin-bottom: 28px;
+      padding-bottom: 20px;
+      box-shadow: 0px 1px 0px 0px rgba(0,0,0,0.06);
     }
-
     h1 {
-      margin: 0 0 6px;
       font-size: 32px;
-      line-height: 1.1;
-      letter-spacing: 0;
+      font-weight: 600;
+      letter-spacing: -1.28px;
+      line-height: 1.2;
     }
-
-    .subhead {
-      margin: 0;
-      color: var(--muted);
-      font-size: 14px;
+    h1 span { font-weight: 400; color: var(--gray-500); font-size: 16px; letter-spacing: normal; }
+    .subhead { font-size: 14px; color: var(--gray-500); margin-top: 2px; }
+    .about-toggle {
+      font-size: 13px; font-weight: 500; color: var(--link); cursor: pointer;
+      user-select: none; margin-left: 12px; text-decoration: underline;
+      text-decoration-color: rgba(0,114,245,0.3); text-underline-offset: 3px;
     }
+    .about-toggle:hover { text-decoration-color: var(--link); }
 
     .controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      justify-content: flex-end;
+      display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
     }
-
-    button,
-    select {
-      min-height: 36px;
-      border: 1px solid var(--line);
-      background: var(--panel);
-      color: var(--ink);
-      border-radius: 6px;
-      padding: 0 12px;
-      font: inherit;
-    }
-
-    input {
-      min-height: 36px;
-      width: 110px;
-      border: 1px solid var(--line);
-      background: var(--panel);
-      color: var(--ink);
-      border-radius: 6px;
-      padding: 0 10px;
-      font: inherit;
-    }
-
-    button {
+    .controls button, .controls select {
+      font-family: 'Geist', system-ui, sans-serif;
+      font-size: 13px; font-weight: 500;
+      height: 32px; padding: 0 12px;
+      border-radius: var(--radius-sm);
+      border: none;
+      box-shadow: var(--shadow-border);
+      background: var(--white);
+      color: var(--black);
       cursor: pointer;
+      transition: box-shadow 0.15s;
+    }
+    .controls button:hover { box-shadow: var(--shadow-card-hover); }
+    .controls button.active { background: var(--black); color: var(--white); box-shadow: none; }
+    .controls select { appearance: none; padding-right: 28px; background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23666' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
+
+    /* ── About Panel ── */
+    .about-panel {
+      display: none;
+      background: var(--gray-50);
+      box-shadow: var(--shadow-border);
+      border-radius: var(--radius-lg);
+      padding: 24px 28px;
+      margin-bottom: 28px;
+      font-size: 14px; line-height: 1.7; color: var(--gray-600);
+    }
+    .about-panel.open { display: block; }
+    .about-panel h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.36px; color: var(--black); margin: 20px 0 8px; }
+    .about-panel h3:first-child { margin-top: 0; }
+    .about-panel p { margin: 4px 0 12px; }
+    .about-panel strong { color: var(--black); font-weight: 500; }
+    .about-panel code {
+      font-family: 'Geist Mono', ui-monospace, monospace;
+      font-size: 12px; background: var(--white);
+      padding: 1px 5px; border-radius: 3px;
+      box-shadow: var(--shadow-border);
+    }
+    .about-panel .features-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px; margin-top: 12px;
+    }
+    .about-panel .feature-badge {
+      font-size: 12px; font-weight: 500; color: #0068d6;
+      background: #ebf5ff; padding: 2px 10px; border-radius: var(--radius-pill);
+      display: inline-block; margin: 0 4px 4px 0;
     }
 
-    button.active {
-      border-color: var(--ink);
-      background: var(--ink);
-      color: white;
-    }
-
+    /* ── Summary Metrics ── */
     .summary {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 12px;
-      margin-bottom: 16px;
+      gap: 10px;
+      margin-bottom: 24px;
     }
-
     .metric {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 14px;
-      min-height: 92px;
+      background: var(--white);
+      box-shadow: var(--shadow-card);
+      border-radius: var(--radius-md);
+      padding: 16px;
+    }
+    .metric-label {
+      font-size: 11px; font-weight: 500; color: var(--gray-500);
+      text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px;
+    }
+    .metric-value {
+      font-size: 28px; font-weight: 600; letter-spacing: -0.56px;
+      line-height: 1; color: var(--black);
     }
 
-    .metric span {
-      display: block;
-      color: var(--muted);
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: .04em;
-      margin-bottom: 8px;
-    }
-
-    .metric strong {
-      display: block;
-      font-size: 28px;
-      line-height: 1;
-    }
-
-    .grid {
-      display: grid;
-      gap: 12px;
-    }
+    /* ── Match Cards ── */
+    .grid { display: grid; gap: 10px; margin-bottom: 28px; }
 
     .match {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-left: 5px solid var(--safe);
-      border-radius: 8px;
-      padding: 14px;
+      background: var(--white);
+      box-shadow: var(--shadow-card);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
       display: grid;
-      grid-template-columns: minmax(220px, 1fr) minmax(290px, 1.3fr) minmax(210px, .8fr);
-      gap: 18px;
-      align-items: center;
+      grid-template-columns: minmax(180px, 0.8fr) minmax(260px, 1.1fr) minmax(200px, 0.9fr);
+      gap: 20px;
+      align-items: start;
+      transition: box-shadow 0.15s;
     }
+    .match:hover { box-shadow: var(--shadow-card-hover); }
+    .match.swing { border-left: 3px solid var(--risk); padding-left: 17px; }
 
-    .match.swing {
-      border-left-color: var(--risk);
-    }
-
-    .fixture {
-      display: grid;
-      gap: 8px;
-    }
-
-    .teams {
-      font-weight: 700;
-      font-size: 18px;
-      line-height: 1.2;
-    }
-
-    .badge-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
+    .fixture { display: grid; gap: 8px; }
+    .teams { font-weight: 600; font-size: 17px; letter-spacing: -0.34px; line-height: 1.25; }
+    .badge-row { display: flex; flex-wrap: wrap; gap: 5px; }
     .badge {
-      display: inline-flex;
-      align-items: center;
-      min-height: 24px;
-      padding: 0 8px;
-      border-radius: 999px;
-      background: #eef2f6;
-      color: #344054;
-      font-size: 12px;
+      display: inline-flex; align-items: center;
+      font-family: 'Geist', sans-serif; font-size: 11px; font-weight: 500;
+      padding: 2px 8px; border-radius: var(--radius-pill);
       white-space: nowrap;
     }
+    .badge-pick { background: #ebf5ff; color: #0068d6; }
+    .badge-swing { background: #fff1f0; color: #cf1322; }
+    .badge-safe { background: #f5f5f5; color: var(--gray-600); }
+    .badge-crowd { background: #f5f5f5; color: var(--gray-500); }
+    .badge-bonus { background: #f0fdf4; color: #067647; }
+    .badge-actual { font-weight: 600; }
+    .badge-actual.win { background: #ecfdf5; color: #067647; }
+    .badge-actual.loss { background: #fff1f0; color: #cf1322; }
+    .badge-actual.draw { background: #f5f3ff; color: #5b4fcf; }
 
-    .badge.risk {
-      background: #fff1e8;
-      color: #9a3412;
-    }
-    .badge.delta-pos {
-      background: #eaf4ff;
-      color: #1a5fb4;
-    }
-    .badge.delta-neg {
-      background: #fdf0ed;
-      color: #a64b3a;
-    }
-
-    .badge.pick {
-      background: #eafaf4;
-      color: #067647;
-    }
-
-    .bars {
-      display: grid;
-      gap: 8px;
-    }
-
+    /* Bars */
+    .bars { display: grid; gap: 5px; }
     .bar-row {
-      display: grid;
-      grid-template-columns: 44px 1fr 48px 52px;
-      gap: 8px;
-      align-items: center;
-      font-size: 12px;
-      color: var(--muted);
+      display: grid; grid-template-columns: 30px 1fr 38px 38px;
+      gap: 8px; align-items: center; font-size: 11px; color: var(--gray-500);
     }
+    .track { height: 6px; background: var(--gray-100); border-radius: var(--radius-pill); overflow: hidden; }
+    .fill { height: 100%; border-radius: inherit; }
+    .fill.home { background: var(--home); }
+    .fill.draw { background: var(--draw); }
+    .fill.away { background: var(--away); }
 
-    .track {
-      height: 10px;
-      background: #edf1f5;
-      border-radius: 999px;
-      overflow: hidden;
-    }
-
-    .fill {
-      height: 100%;
-      border-radius: inherit;
-    }
-
-    .fill.home {
-      background: var(--home);
-    }
-
-    .fill.draw {
-      background: var(--draw);
-    }
-
-    .fill.away {
-      background: var(--away);
-    }
-
-    .ev-panel {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 8px;
-    }
-
+    /* Details */
+    .details { display: grid; gap: 8px; justify-items: end; text-align: right; }
+    .score { font-weight: 600; font-size: 26px; letter-spacing: -0.52px; line-height: 1; }
+    .pickline { font-size: 12px; color: var(--gray-500); }
+    .ev-panel { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; width: 100%; }
     .ev-box {
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      padding: 8px;
-      background: #fbfcfe;
-      min-height: 72px;
+      box-shadow: var(--shadow-border); border-radius: var(--radius-sm);
+      padding: 6px 8px; background: var(--white); text-align: center;
     }
+    .ev-box.selected { box-shadow: 0px 0px 0px 2px var(--black); }
+    .ev-box-label { font-size: 10px; font-weight: 500; color: var(--gray-500); text-transform: uppercase; margin-bottom: 4px; }
+    .ev-box-value { font-size: 18px; font-weight: 600; letter-spacing: -0.36px; }
 
-    .ev-box.selected {
-      border-color: var(--ink);
-      background: #f2f5f8;
+    /* Status */
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 10px; font-weight: 600; padding: 2px 8px;
+      border-radius: var(--radius-pill); margin-left: 8px;
     }
+    .status-badge.live { background: #fef3c7; color: #92400e; animation: pulse 1.5s ease-in-out infinite; }
+    .status-badge.finished { background: #ecfdf5; color: #067647; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
 
-    .ev-box span {
-      display: block;
-      color: var(--muted);
-      font-size: 11px;
-      text-transform: uppercase;
-      margin-bottom: 6px;
-    }
-
-    .ev-box strong {
-      font-size: 20px;
-    }
-
-    .details {
-      display: grid;
-      gap: 8px;
-      justify-items: end;
-      text-align: right;
-    }
-
-    .score {
-      font-weight: 800;
-      font-size: 28px;
-      line-height: 1;
-    }
-
-    .pickline {
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-      .actual-on-card {
-      margin-top: 10px;
-      padding: 8px 10px;
-      border-radius: 6px;
-      font-size: 13px;
-      font-weight: 600;
-    }
-    .actual-on-card.win {
-      background: #eafaf4;
-      color: #067647;
-    }
-    .actual-on-card.loss {
-      background: #fff1e8;
-      color: #9a3412;
-    }
-    .actual-on-card.draw {
-      background: #f2f1fa;
-      color: #5b4fcf;
-    }
-
-    .about-toggle {
-      cursor: pointer;
-      font-size: 13px;
-      color: var(--home);
-      margin-left: 12px;
-      font-weight: 500;
-      user-select: none;
-    }
-    .about-panel {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 20px 24px;
-      margin-bottom: 18px;
-      display: none;
-      font-size: 14px;
-      line-height: 1.65;
-    }
-    .about-panel.open {
-      display: block;
-    }
-    .about-panel h3 {
-      margin: 16px 0 6px;
-      font-size: 16px;
-    }
-    .about-panel h3:first-child {
-      margin-top: 0;
-    }
-    .about-panel p {
-      margin: 4px 0 10px;
-      color: var(--muted);
-    }
-    .about-panel code {
-      font-size: 12px;
-      background: #edf1f5;
-      padding: 1px 5px;
-      border-radius: 3px;
-    }
-
-  .heatmap-toggle {
-      cursor: pointer;
-      font-size: 11px;
-      color: var(--home);
-      margin-left: 6px;
-      font-weight: 500;
-      user-select: none;
-    }
-    .heatmap-panel {
-      display: none;
-      margin-top: 10px;
-      padding: 8px;
-      background: #fbfcfe;
-      border: 1px solid var(--line);
-      border-radius: 6px;
-    }
-    .heatmap-panel.open {
-      display: block;
+    /* Heatmap (below card) */
+    .card-extra { margin-top: 14px; padding-top: 14px; box-shadow: 0px -1px 0px 0px rgba(0,0,0,0.06); }
+    .heatmap-section, .model-section { margin-bottom: 10px; }
+    .section-label {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.06em; color: var(--gray-500); margin-bottom: 8px;
     }
     .heatmap-grid {
       display: grid;
-      grid-template-columns: 24px repeat(7, 1fr);
-      gap: 1px;
-      font-size: 10px;
-      text-align: center;
+      grid-template-columns: 20px repeat(7, 1fr);
+      gap: 1px; font-size: 9px; text-align: center;
     }
     .heatmap-label {
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 600;
+      color: var(--gray-500); display: flex; align-items: center;
+      justify-content: center; font-weight: 500; font-size: 10px;
     }
     .heatmap-cell {
-      aspect-ratio: 1;
-      border-radius: 2px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 9px;
-      color: transparent;
-      min-width: 0;
+      aspect-ratio: 1; border-radius: 2px;
+      display: flex; align-items: center; justify-content: center;
+      color: transparent; font-size: 8px; min-width: 0;
     }
-    .heatmap-cell:hover {
-      color: var(--ink);
-      font-weight: 700;
-      font-size: 10px;
-    }
+    .heatmap-cell:hover { color: var(--black); font-weight: 600; font-size: 10px; }
     .heatmap-legend {
-      display: flex;
-      gap: 4px;
-      align-items: center;
-      margin-top: 6px;
-      font-size: 10px;
-      color: var(--muted);
+      display: flex; gap: 4px; align-items: center; margin-top: 4px;
+      font-size: 9px; color: var(--gray-400);
     }
-    .heatmap-legend span {
-      width: 12px;
-      height: 12px;
-      border-radius: 2px;
-      display: inline-block;
-    }
+    .heatmap-legend span { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
 
-    .model-breakdown {
-      margin-top: 8px;
-      font-size: 11px;
-      color: var(--muted);
+    /* Model breakdown */
+    .mb-grid { display: grid; gap: 3px; }
+    .mb-row { display: grid; grid-template-columns: 28px 1fr 36px; gap: 8px; align-items: center; font-size: 10px; }
+    .mb-label { color: var(--gray-500); text-transform: uppercase; font-weight: 500; }
+    .mb-track { height: 12px; background: var(--gray-100); border-radius: var(--radius-pill); overflow: hidden; display: flex; }
+    .mb-seg { height: 100%; }
+    .mb-seg-elo { background: var(--home); }
+    .mb-seg-decomposed { background: var(--draw); }
+    .mb-seg-market { background: var(--away); }
+    .mb-legend {
+      display: flex; gap: 10px; margin-top: 4px; font-size: 9px; color: var(--gray-500);
     }
-    .model-breakdown .mb-label {
-      font-weight: 600;
-      margin-bottom: 3px;
+    .mb-legend span::before {
+      content: ""; display: inline-block; width: 8px; height: 8px;
+      border-radius: 2px; margin-right: 3px; vertical-align: middle;
     }
-    .mb-outcome {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin: 2px 0;
-    }
-    .mb-outcome-name {
-      width: 32px;
-      font-size: 10px;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-    .mb-track {
-      flex: 1;
-      height: 10px;
-      background: #edf1f5;
-      border-radius: 999px;
-      overflow: hidden;
-      display: flex;
-    }
-    .mb-seg {
-      height: 100%;
-    }
-    .mb-seg.elo { background: #2f80ed; }
-    .mb-seg.decomposed { background: #8a6fdf; }
-    .mb-seg.market { background: #0f9f6e; }
-    .mb-seg.xg { background: #c2410c; }
-    .mb-seg-legend {
-      display: flex;
-      gap: 8px;
-      margin-top: 2px;
-      font-size: 9px;
-    }
-    .mb-seg-legend span::before {
-      content: "";
-      display: inline-block;
-      width: 8px;
-      height: 8px;
-      border-radius: 2px;
-      margin-right: 3px;
-      vertical-align: middle;
-    }
-    .mb-seg-legend .l-elo::before { background: #2f80ed; }
-    .mb-seg-legend .l-decomposed::before { background: #8a6fdf; }
-    .mb-seg-legend .l-market::before { background: #0f9f6e; }
-    .mb-seg-legend .l-xg::before { background: #c2410c; }
+    .mb-legend .l-elo::before { background: var(--home); }
+    .mb-legend .l-decomposed::before { background: var(--draw); }
+    .mb-legend .l-market::before { background: var(--away); }
 
-    .status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 11px;
-      font-weight: 600;
-      padding: 2px 8px;
-      border-radius: 999px;
-    }
-    .status-badge.live {
-      background: #fef3c7;
-      color: #92400e;
-      animation: pulse 1.5s ease-in-out infinite;
-    }
-    .status-badge.finished {
-      background: #eafaf4;
-      color: #067647;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.6; }
-    }
-
-.empty {
-      display: none;
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 24px;
-      color: var(--muted);
-      text-align: center;
-    }
-
+    /* ── Monte Carlo ── */
     .sim-section {
-      margin: 18px 0;
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 14px;
+      background: var(--white);
+      box-shadow: var(--shadow-card);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin-bottom: 28px;
     }
-
     .section-head {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      gap: 12px;
-      align-items: center;
-      margin-bottom: 12px;
+      display: flex; flex-wrap: wrap; justify-content: space-between;
+      gap: 12px; align-items: center; margin-bottom: 18px;
     }
-
-    .section-head h2 {
-      margin: 0;
-      font-size: 20px;
-      letter-spacing: 0;
-    }
-
-    .sim-controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: center;
-      justify-content: flex-end;
-    }
-
+    .section-head h2 { font-size: 20px; font-weight: 600; letter-spacing: -0.4px; }
+    .sim-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
     .sim-controls label {
-      display: inline-flex;
-      gap: 6px;
-      align-items: center;
-      color: var(--muted);
-      font-size: 13px;
+      display: inline-flex; gap: 6px; align-items: center;
+      font-size: 12px; color: var(--gray-500); font-weight: 500;
     }
-
-    .sim-metrics {
-      display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 10px;
-      margin-bottom: 14px;
+    .sim-controls input {
+      font-family: 'Geist Mono', monospace; font-size: 13px;
+      width: 80px; height: 32px; padding: 0 8px;
+      border: none; box-shadow: var(--shadow-border);
+      border-radius: var(--radius-sm); text-align: center;
     }
+    .sim-controls button {
+      font-family: 'Geist', sans-serif; font-size: 13px; font-weight: 500;
+      height: 32px; padding: 0 14px;
+      background: var(--black); color: var(--white);
+      border: none; border-radius: var(--radius-sm); cursor: pointer;
+    }
+    .sim-controls button:hover { opacity: 0.9; }
 
+    .sim-metrics { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin-bottom: 18px; }
     .sim-card {
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      padding: 10px;
-      background: #fbfcfe;
-      min-height: 78px;
+      box-shadow: var(--shadow-border); border-radius: var(--radius-sm);
+      padding: 12px; text-align: center;
     }
+    .sim-card-label { font-size: 10px; font-weight: 500; color: var(--gray-500); text-transform: uppercase; margin-bottom: 6px; }
+    .sim-card-value { font-size: 24px; font-weight: 600; letter-spacing: -0.48px; }
 
-    .sim-card span {
-      display: block;
-      color: var(--muted);
-      font-size: 11px;
-      text-transform: uppercase;
-      margin-bottom: 7px;
-    }
+    .chart { display: grid; gap: 5px; }
+    .hist-row { display: grid; grid-template-columns: 80px 1fr 50px; gap: 8px; align-items: center; font-size: 11px; color: var(--gray-500); }
+    .hist-track { height: 14px; background: var(--gray-100); border-radius: var(--radius-pill); overflow: hidden; }
+    .hist-fill { height: 100%; background: var(--risk); border-radius: inherit; }
 
-    .sim-card strong {
-      font-size: 24px;
-    }
+    .actuals-panel { margin-top: 18px; padding-top: 18px; box-shadow: 0px -1px 0px 0px rgba(0,0,0,0.06); }
+    .actuals-panel .badge-row { margin-bottom: 8px; }
 
-    .chart {
-      display: grid;
-      gap: 8px;
-    }
+    /* Empty state */
+    .empty { display: none; text-align: center; color: var(--gray-500); padding: 24px; font-size: 14px; }
 
-    .hist-row {
-      display: grid;
-      grid-template-columns: 80px 1fr 54px;
-      gap: 8px;
-      align-items: center;
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .hist-track {
-      height: 16px;
-      background: #edf1f5;
-      border-radius: 999px;
-      overflow: hidden;
-    }
-
-    .hist-fill {
-      height: 100%;
-      background: var(--risk);
-      border-radius: inherit;
-    }
-
-    .sim-note {
-      color: var(--muted);
-      font-size: 12px;
-      margin: 12px 0 0;
-    }
-
+    /* ── Responsive ── */
     @media (max-width: 860px) {
-      header {
-        grid-template-columns: 1fr;
-      }
-
-      .controls {
-        justify-content: flex-start;
-      }
-
-      .summary {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .sim-metrics {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .match {
-        grid-template-columns: 1fr;
-      }
-
-      .details {
-        justify-items: start;
-        text-align: left;
-      }
+      .match { grid-template-columns: 1fr; gap: 14px; }
+      .details { justify-items: start; text-align: left; }
+      .summary { grid-template-columns: repeat(2, 1fr); }
+      .sim-metrics { grid-template-columns: repeat(2, 1fr); }
+      header { flex-direction: column; align-items: flex-start; }
     }
-
     @media (max-width: 520px) {
-      main {
-        width: min(100% - 20px, 1180px);
-        padding-top: 16px;
-      }
-
-      .summary {
-        grid-template-columns: 1fr;
-      }
-
-      .sim-metrics {
-        grid-template-columns: 1fr;
-      }
-
-      h1 {
-        font-size: 26px;
-      }
+      main { width: min(100% - 24px, 1100px); padding-top: 20px; }
+      .summary { grid-template-columns: 1fr; }
+      .sim-metrics { grid-template-columns: 1fr; }
+      h1 { font-size: 26px; }
     }
   </style>
 </head>
@@ -642,18 +332,18 @@
   <main>
     <header>
       <div>
-        <h1>Football Oracle <span class="about-toggle" onclick="toggleAbout()">About ▾</span></h1>
-        <p class="subhead">Catch-up view for MPP predictions, rarity bonuses, and upside.</p>
+        <h1>Football Oracle <span class="about-toggle" onclick="toggleAbout()">About ▸</span></h1>
+        <p class="subhead">MPP predictions with rarity bonuses, Monte Carlo simulation, and live tracking.</p>
       </div>
-      <div class="controls" aria-label="Prediction filters">
+      <div class="controls">
         <button type="button" data-filter="all" class="active">All</button>
         <button type="button" data-filter="swing">Swings</button>
-        <button type="button" data-filter="favorite">Crowd favorites</button>
-        <select id="sorter" aria-label="Sort predictions">
-          <option value="swing">Sort by swing score</option>
-          <option value="ev">Sort by expected value</option>
-          <option value="total">Sort by total points</option>
-          <option value="kickoff">Sort by match order</option>
+        <button type="button" data-filter="favorite">Favorites</button>
+        <select id="sorter">
+          <option value="swing">Sort by swing</option>
+          <option value="ev">Sort by EV</option>
+          <option value="total">Sort by points</option>
+          <option value="kickoff">Sort by order</option>
         </select>
       </div>
     </header>
@@ -661,48 +351,76 @@
     <div id="aboutPanel" class="about-panel">
       <h3>How the Football Oracle works</h3>
       <p>
-        The Oracle blends two statistical models into a single prediction for each match:
+        The Oracle blends three statistical models to predict match outcomes, 
+        optimized for the Mon Petit Prono (MPP) scoring system — where rarity and
+        contrarian picks earn bonus points.
       </p>
       <p>
-        <strong>Elo ratings</strong> (25% weight) — A power-rating system that estimates team strength from historical results. 
-        Higher Elo → higher win probability. Updated continuously from eloratings.net.
+        <strong>Elo ratings</strong> (25% weight) — A power-rating system that estimates team 
+        strength from historical international results. Higher Elo → higher win probability. 
+        Seeded from <a href="https://eloratings.net" style="color:inherit">eloratings.net</a>
+        and updated with live tournament results.
       </p>
       <p>
-        <strong>Decomposed Poisson</strong> (75% weight) — Models goals scored and conceded using attack/defense strengths derived 
-        from each team's goal history. Produces a full 11×11 score probability matrix with Dixon-Coles adjustment 
-        (corrects for the low-scoring correlation in football). When teams lack goal data (&lt;5 matches), 
-        weight shifts to Elo automatically.
+        <strong>Decomposed Poisson</strong> (70% weight) — Models goals scored and conceded 
+        using per-team attack/defense strengths derived from goal history. Produces a full 
+        score probability matrix with Dixon-Coles adjustment (corrects for the low-scoring 
+        correlation in football). When teams lack goal data, weight shifts to Elo automatically.
       </p>
       <p>
-        <strong>Rarity bonus</strong> — The MPP game rewards contrarian picks. If &le;2% of the crowd picks an outcome, 
-        you get +200 bonus points. &le;5% → +100, &le;10% → +50, &le;15% → +25. 
-        The Oracle's EV calculation includes this bonus, which is why it often picks against the crowd.
+        <strong>Market odds</strong> (5% weight) — A weak gravitational pull from the betting 
+        market. Doesn't make the Oracle a crowd-follower, but prevents extreme contrarian bets 
+        when all signals disagree.
       </p>
       <p>
-        <strong>Score prediction</strong> — For the chosen outcome, the Oracle finds the highest-probability exact score 
-        from the Dixon-Coles matrix. Getting the exact score right awards +25 bonus points.
+        <strong>Rarity bonus</strong> — The MPP game rewards contrarian picks. ≤2% crowd → +200 bonus, 
+        ≤5% → +100, ≤10% → +50, ≤15% → +25. The EV calculation includes this bonus.
       </p>
       <p>
-        <strong>Monte Carlo simulation</strong> — Instead of a single forecast, the Oracle runs thousands of simulated 
-        matchdays using the same probability distributions. This shows the <em>range</em> of possible outcomes — 
-        mean expected points, downside risk (10th percentile), and the probability of beating the crowd baseline.
+        <strong>EV delta threshold</strong> — A contrarian pick must beat the crowd-favorite EV 
+        by ≥5 points to justify the variance. No marginal bets.
       </p>
-      <p style="margin-top:12px;color:var(--muted);font-size:12px">
-        Built by Samuel. Elo data from eloratings.net. Tournament form blended into λ estimates. 
-        <a href="https://github.com/samumartinf/football-oracle" style="color:var(--home)">github.com/samumartinf/football-oracle</a>
+      <p>
+        <strong>Contrarian cap</strong> — Maximum 4 contrarian picks per matchday, enforced by 
+        the batch optimizer. Keeps the weakest contrarian bets as safe picks.
+      </p>
+
+      <div class="features-grid">
+        <div>
+          <h3>Viewer features</h3>
+          <span class="feature-badge">Score heatmap</span>
+          <span class="feature-badge">Model breakdown</span>
+          <span class="feature-badge">Live scores</span>
+          <span class="feature-badge">Actual results</span>
+          <span class="feature-badge">Monte Carlo sim</span>
+        </div>
+        <div>
+          <h3>Coming soon</h3>
+          <span class="feature-badge">xG model</span>
+          <span class="feature-badge">Bracket simulator</span>
+          <span class="feature-badge">Calibration chart</span>
+        </div>
+      </div>
+
+      <p style="margin-top:16px; font-size:12px; color:var(--gray-400)">
+        Built by Samuel. 
+        <a href="https://github.com/samumartinf/football-oracle" style="color:var(--link)">github.com/samumartinf/football-oracle</a>
       </p>
     </div>
 
-    <section class="summary" aria-label="Prediction summary">
-      <div class="metric"><span>Matches</span><strong id="metricMatches">0</strong></div>
-      <div class="metric"><span>Swing picks</span><strong id="metricSwings">0</strong></div>
-      <div class="metric"><span>Total EV</span><strong id="metricEv">0</strong></div>
-      <div class="metric"><span>Max upside</span><strong id="metricUpside">0</strong></div>
+    <section class="summary">
+      <div class="metric"><div class="metric-label">Matches</div><div class="metric-value" id="metricMatches">0</div></div>
+      <div class="metric"><div class="metric-label">Swings</div><div class="metric-value" id="metricSwings">0</div></div>
+      <div class="metric"><div class="metric-label">Total EV</div><div class="metric-value" id="metricEv">0</div></div>
+      <div class="metric"><div class="metric-label">Max Upside</div><div class="metric-value" id="metricUpside">0</div></div>
     </section>
 
-    <section class="sim-section" aria-label="Monte Carlo simulation">
+    <section id="cards" class="grid"></section>
+    <div id="empty" class="empty">No predictions match this filter.</div>
+
+    <section class="sim-section">
       <div class="section-head">
-        <h2>Monte Carlo</h2>
+        <h2>Monte Carlo Simulation</h2>
         <div class="sim-controls">
           <label>Runs <input id="simRuns" type="number" min="100" max="100000" step="100" value="20000"></label>
           <label>Seed <input id="simSeed" type="number" min="1" max="999999" step="1" value="7"></label>
@@ -710,145 +428,39 @@
         </div>
       </div>
       <div class="sim-metrics">
-        <div class="sim-card"><span>Oracle mean</span><strong id="simOracleMean">0</strong></div>
-        <div class="sim-card"><span>Crowd mean</span><strong id="simCrowdMean">0</strong></div>
-        <div class="sim-card"><span>Mean delta</span><strong id="simDeltaMean">0</strong></div>
-        <div class="sim-card"><span>Beat crowd</span><strong id="simBeatRate">0%</strong></div>
-        <div class="sim-card"><span>Big swing +150</span><strong id="simBigSwing">0%</strong></div>
+        <div class="sim-card"><div class="sim-card-label">Oracle mean</div><div class="sim-card-value" id="simOracleMean">0</div></div>
+        <div class="sim-card"><div class="sim-card-label">Crowd mean</div><div class="sim-card-value" id="simCrowdMean">0</div></div>
+        <div class="sim-card"><div class="sim-card-label">Mean delta</div><div class="sim-card-value" id="simDeltaMean">0</div></div>
+        <div class="sim-card"><div class="sim-card-label">Beat crowd</div><div class="sim-card-value" id="simBeatRate">0%</div></div>
+        <div class="sim-card"><div class="sim-card-label">Big swing</div><div class="sim-card-value" id="simBigSwing">0%</div></div>
       </div>
-      <div id="simChart" class="chart" aria-label="Delta distribution"></div>
-      <div id="actualsPanel" class="chart" style="margin-top:14px"></div>
-      <p class="sim-note">Outcome simulation uses model probabilities and MPP points. Exact-score bonus is approximated from the chosen scoreline, so treat this as a portfolio-risk view rather than a scoreline forecast.</p>
+      <div id="simChart" class="chart"></div>
+      <div id="actualsPanel" class="actuals-panel"></div>
     </section>
-
-    <section id="cards" class="grid" aria-label="Predictions"></section>
-    <div id="empty" class="empty">No predictions match this filter.</div>
   </main>
 
   <script src="data/monte_carlo_results.js"></script>
   <script>
     const predictions = [
-      {
-        match: "Argentina v Algeria",
-        order: 1,
-        pick: "away",
-        score: "1-2",
-        ev: 53.1,
-        total: 234,
-        bonus: "+50 rare",
-        probability: { home: 0.5008, draw: 0.2453, away: 0.2539 },
-        crowd: { home: 0.80, draw: 0.14, away: 0.06 },
-        points: { home: 43, draw: 129, away: 159 }
-      },
-      {
-        match: "Austria v Jordan",
-        order: 2,
-        pick: "away",
-        score: "1-2",
-        ev: 46.0,
-        total: 288,
-        bonus: "+100 ultraRare",
-        probability: { home: 0.5812, draw: 0.2437, away: 0.1751 },
-        crowd: { home: 0.83, draw: 0.14, away: 0.03 },
-        points: { home: 38, draw: 136, away: 163 }
-      },
-      {
-        match: "Portugal v DR Congo",
-        order: 3,
-        pick: "draw",
-        score: "1-1",
-        ev: 47.3,
-        total: 265,
-        bonus: "+100 ultraRare",
-        probability: { home: 0.7022, draw: 0.1969, away: 0.1009 },
-        crowd: { home: 0.95, draw: 0.04, away: 0.01 },
-        points: { home: 34, draw: 140, away: 170 }
-      },
-      {
-        match: "England v Croatia",
-        order: 4,
-        pick: "away",
-        score: "0-1",
-        ev: 46.6,
-        total: 208,
-        bonus: "+50 rare",
-        probability: { home: 0.4848, draw: 0.2608, away: 0.2544 },
-        crowd: { home: 0.57, draw: 0.35, away: 0.08 },
-        points: { home: 59, draw: 119, away: 133 }
-      },
-      {
-        match: "Ghana v Panama",
-        order: 5,
-        pick: "away",
-        score: "0-1",
-        ev: 100.0,
-        total: 191,
-        bonus: "+50 rare",
-        probability: { home: 0.1698, draw: 0.2279, away: 0.6024 },
-        crowd: { home: 0.60, draw: 0.33, away: 0.07 },
-        points: { home: 73, draw: 113, away: 116 }
-      },
-      {
-        match: "Uzbekistan v Colombia",
-        order: 6,
-        pick: "draw",
-        score: "1-1",
-        ev: 38.6,
-        total: 205,
-        bonus: "+50 rare",
-        probability: { home: 0.1383, draw: 0.2146, away: 0.6471 },
-        crowd: { home: 0.03, draw: 0.07, away: 0.90 },
-        points: { home: 157, draw: 130, away: 44 }
-      },
-      {
-        match: "Czech Republic v South Africa",
-        order: 7,
-        pick: "away",
-        score: "0-1",
-        ev: 62.1,
-        total: 192,
-        bonus: "+25 veryRare",
-        probability: { home: 0.3472, draw: 0.2812, away: 0.3718 },
-        crowd: { home: 0.58, draw: 0.27, away: 0.15 },
-        points: { home: 62, draw: 112, away: 142 }
-      },
-      {
-        match: "Switzerland v Bosnia",
-        order: 8,
-        pick: "away",
-        score: "1-2",
-        ev: 77.0,
-        total: 209,
-        bonus: "+50 rare",
-        probability: { home: 0.3382, draw: 0.2431, away: 0.4187 },
-        crowd: { home: 0.72, draw: 0.21, away: 0.06 },
-        points: { home: 76, draw: 108, away: 134 }
-      },
-      {
-        match: "Canada v Qatar",
-        order: 9,
-        pick: "away",
-        score: "0-1",
-        ev: 90.0,
-        total: 223,
-        bonus: "+50 rare",
-        probability: { home: 0.3539, draw: 0.1916, away: 0.4546 },
-        crowd: { home: 0.76, draw: 0.17, away: 0.07 },
-        points: { home: 71, draw: 104, away: 148 }
-      }
+      {match:"Argentina v Algeria",order:1,pick:"away",score:"1-2",ev:52.6,total:234,bonus:"+50 rare",probability:{home:0.5008,draw:0.2453,away:0.2539},crowd:{home:0.80,draw:0.14,away:0.06},points:{home:43,draw:129,away:159}},
+      {match:"Austria v Jordan",order:2,pick:"away",score:"1-2",ev:44.3,total:288,bonus:"+100 ultraRare",probability:{home:0.5812,draw:0.2437,away:0.1751},crowd:{home:0.83,draw:0.14,away:0.03},points:{home:38,draw:136,away:163}},
+      {match:"Portugal v DR Congo",order:3,pick:"away",score:"1-2",ev:53.8,total:395,bonus:"+200 megaRare",probability:{home:0.7022,draw:0.1969,away:0.1009},crowd:{home:0.95,draw:0.04,away:0.01},points:{home:34,draw:140,away:170}},
+      {match:"England v Croatia",order:4,pick:"away",score:"0-1",ev:37.3,total:208,bonus:"+50 rare",probability:{home:0.4848,draw:0.2608,away:0.2544},crowd:{home:0.57,draw:0.35,away:0.08},points:{home:59,draw:119,away:133}},
+      {match:"Ghana v Panama",order:5,pick:"away",score:"0-1",ev:83.2,total:191,bonus:"+50 rare",probability:{home:0.1698,draw:0.2279,away:0.6024},crowd:{home:0.60,draw:0.33,away:0.07},points:{home:73,draw:113,away:116}},
+      {match:"Uzbekistan v Colombia",order:6,pick:"draw",score:"1-1",ev:37.1,total:205,bonus:"+50 rare",probability:{home:0.1383,draw:0.2146,away:0.6471},crowd:{home:0.03,draw:0.07,away:0.90},points:{home:157,draw:130,away:44}},
+      {match:"Czech Republic v South Africa",order:7,pick:"away",score:"1-2",ev:57.8,total:192,bonus:"+25 veryRare",probability:{home:0.3472,draw:0.2812,away:0.3718},crowd:{home:0.58,draw:0.27,away:0.15},points:{home:62,draw:112,away:142}},
+      {match:"Switzerland v Bosnia",order:8,pick:"away",score:"1-2",ev:59.6,total:209,bonus:"+50 rare",probability:{home:0.3382,draw:0.2431,away:0.4187},crowd:{home:0.72,draw:0.21,away:0.06},points:{home:76,draw:108,away:134}},
+      {match:"Canada v Qatar",order:9,pick:"away",score:"0-1",ev:54.5,total:223,bonus:"+50 rare",probability:{home:0.3539,draw:0.1916,away:0.4546},crowd:{home:0.76,draw:0.17,away:0.07},points:{home:71,draw:104,away:148}}
     ];
 
     let actualsMap = {};
     function buildActualsMap() {
       if (window.MONTE_CARLO_RESULTS && window.MONTE_CARLO_RESULTS.actuals) {
-        window.MONTE_CARLO_RESULTS.actuals.rows.forEach(function(row) {
-          actualsMap[row.match] = row;
-        });
+        window.MONTE_CARLO_RESULTS.actuals.rows.forEach(function(row) { actualsMap[row.match] = row; });
       }
     }
     buildActualsMap();
 
-    // Merge model_probs, score_matrix, status from MC results into predictions
     function mergeMCData() {
       if (!window.MONTE_CARLO_RESULTS || !window.MONTE_CARLO_RESULTS.rows) return;
       var mcRows = window.MONTE_CARLO_RESULTS.rows;
@@ -865,37 +477,165 @@
     }
     mergeMCData();
 
-    let filter = "all";
+    var filter = "all";
+    var outcomeLabels = {home:"Home",draw:"Draw",away:"Away"};
 
-    const outcomeLabels = { home: "Home", draw: "Draw", away: "Away" };
-
-    function crowdFavorite(item) {
-      return Object.keys(item.crowd).sort((a, b) => item.crowd[b] - item.crowd[a])[0];
-    }
-
-    function isSwing(item) {
-      return item.pick !== crowdFavorite(item);
-    }
-
+    function crowdFavorite(item) { return Object.keys(item.crowd).sort(function(a,b){return item.crowd[b]-item.crowd[a]})[0]; }
+    function isSwing(item) { return item.pick !== crowdFavorite(item); }
     function swingScore(item) {
-      const favorite = crowdFavorite(item);
-      const pickCrowd = item.crowd[item.pick] || 0;
-      const favoriteCrowd = item.crowd[favorite] || 0;
-      return item.total * (favoriteCrowd - pickCrowd + 0.2);
+      var favorite = crowdFavorite(item);
+      return item.total * ((item.crowd[favorite]||0) - (item.crowd[item.pick]||0) + 0.2);
+    }
+    function evFor(item, outcome) { return item.probability[outcome] * item.points[outcome]; }
+    function pct(value) { return Math.round(value * 100) + "%"; }
+    function fmt(value) { return Number(value).toFixed(1); }
+
+    function heatmapColor(prob, maxProb) {
+      var i = maxProb > 0 ? prob / maxProb : 0;
+      var r = Math.round(237 + (194-237)*i), g = Math.round(241 + (65-241)*i), b = Math.round(245 + (14-245)*i);
+      return "rgb("+r+","+g+","+b+")";
     }
 
-    function evFor(item, outcome) {
-      return item.probability[outcome] * item.points[outcome];
+    function toggleAbout() {
+      var panel = document.getElementById("aboutPanel");
+      var btn = document.querySelector(".about-toggle");
+      panel.classList.toggle("open");
+      btn.textContent = panel.classList.contains("open") ? "About ▾" : "About ▸";
     }
 
-    function pct(value) {
-      return `${Math.round(value * 100)}%`;
+    function renderStatusBadge(item) {
+      if (!item.status || item.status === "unknown" || item.status === "notStarted") return "";
+      if (item.status === "fullTime" || item.status === "finished") return '<span class="status-badge finished">FT</span>';
+      var score = (item.live_home !== undefined ? item.live_home : "?") + "-" + (item.live_away !== undefined ? item.live_away : "?");
+      return '<span class="status-badge live">LIVE ' + score + '</span>';
     }
 
-    function fmt(value) {
-      return Number(value).toFixed(1);
+    function renderActualOnCard(item) {
+      var actual = actualsMap[item.match];
+      if (!actual) return "";
+      var cls = actual.oraclePoints > actual.crowdPoints ? "win" : (actual.oraclePoints === actual.crowdPoints ? "draw" : "loss");
+      return '<span class="badge badge-actual ' + cls + '" style="margin-left:6px">' + actual.actual + ' (' + actual.oraclePoints + '/' + actual.crowdPoints + ')</span>';
     }
 
+    function renderHeatmap(item) {
+      if (!item.score_matrix) return "";
+      var grid = item.score_matrix, maxProb = 0;
+      for (var i = 0; i < grid.length; i++) for (var j = 0; j < grid[i].length; j++) if (grid[i][j] > maxProb) maxProb = grid[i][j];
+      var html = '<div class="card-extra"><div class="heatmap-section"><div class="section-label">Score probability heatmap</div><div class="heatmap-grid">';
+      html += '<div></div>';
+      for (var j = 0; j < 7; j++) html += '<div class="heatmap-label">' + j + '</div>';
+      for (var i = 0; i < 7; i++) {
+        html += '<div class="heatmap-label">' + i + '</div>';
+        for (var j = 0; j < 7; j++) {
+          var prob = grid[i][j] || 0;
+          var bg = heatmapColor(prob, maxProb);
+          html += '<div class="heatmap-cell" style="background:' + bg + '" title="' + i + '-' + j + ': ' + (prob*100).toFixed(1) + '%">' + (prob*100).toFixed(0) + '</div>';
+        }
+      }
+      html += '</div><div class="heatmap-legend">Home goals → | Away goals ↓ | <span style="background:#edf1f5"></span> 0% <span style="background:rgb(194,65,14)"></span> ' + (maxProb*100).toFixed(1) + '%</div></div></div>';
+      return html;
+    }
+
+    function renderModelBreakdown(item) {
+      if (!item.model_probs) return "";
+      var outcomes = ["home","draw","away"];
+      var modelOrder = ["elo","decomposed","market"];
+      var html = '<div class="model-section"><div class="section-label">Model contribution by outcome</div><div class="mb-grid">';
+      for (var o = 0; o < outcomes.length; o++) {
+        var outcome = outcomes[o], total = 0, segs = [];
+        for (var m = 0; m < modelOrder.length; m++) {
+          var model = modelOrder[m];
+          if (item.model_probs[model] && item.model_probs[model][outcome] !== undefined) {
+            var p = item.model_probs[model][outcome];
+            total += p;
+            segs.push({model:model, p:p});
+          }
+        }
+        if (total === 0) continue;
+        html += '<div class="mb-row"><div class="mb-label">' + outcomeLabels[outcome] + '</div><div class="mb-track">';
+        for (var s = 0; s < segs.length; s++) {
+          var w = (segs[s].p / total) * 100;
+          html += '<div class="mb-seg mb-seg-' + segs[s].model + '" style="width:' + w + '%"></div>';
+        }
+        html += '</div><span style="font-size:11px;color:var(--gray-600);text-align:right">' + pct(total) + '</span></div>';
+      }
+      html += '<div class="mb-legend"><span class="l-elo">Elo</span><span class="l-decomposed">Decomposed</span><span class="l-market">Market</span></div></div></div>';
+      return html;
+    }
+
+    function renderHeatmapAndModel(item) {
+      return renderHeatmap(item) + renderModelBreakdown(item);
+    }
+
+    function renderCard(item) {
+      var swing = isSwing(item), favorite = crowdFavorite(item);
+      return '<article class="match' + (swing ? " swing" : "") + '">' +
+        '<div class="fixture">' +
+          '<div class="teams">' + item.match + renderStatusBadge(item) + renderActualOnCard(item) + '</div>' +
+          '<div class="badge-row">' +
+            '<span class="badge badge-pick">' + outcomeLabels[item.pick] + ' ' + item.score + '</span>' +
+            '<span class="badge ' + (swing ? "badge-swing" : "badge-safe") + '">' + (swing ? "Swing" : "Crowd favorite") + '</span>' +
+            '<span class="badge badge-crowd">Crowd ' + outcomeLabels[favorite] + '</span>' +
+            '<span class="badge badge-bonus">' + item.bonus + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<div>' +
+          '<div class="bars">' +
+            '<div class="bar-row"><span>H</span><div class="track"><div class="fill home" style="width:' + (item.probability.home*100) + '%"></div></div><span>' + pct(item.probability.home) + '</span><span>' + pct(item.crowd.home) + '</span></div>' +
+            '<div class="bar-row"><span>D</span><div class="track"><div class="fill draw" style="width:' + (item.probability.draw*100) + '%"></div></div><span>' + pct(item.probability.draw) + '</span><span>' + pct(item.crowd.draw) + '</span></div>' +
+            '<div class="bar-row"><span>A</span><div class="track"><div class="fill away" style="width:' + (item.probability.away*100) + '%"></div></div><span>' + pct(item.probability.away) + '</span><span>' + pct(item.crowd.away) + '</span></div>' +
+          '</div>' +
+          renderHeatmapAndModel(item) +
+        '</div>' +
+        '<div class="details">' +
+          '<div class="score">' + item.score + '</div>' +
+          '<div class="pickline">EV ' + fmt(item.ev) + ' · ' + item.total + ' pts · swing ' + Math.round(swingScore(item)) + '</div>' +
+          '<div class="ev-panel">' +
+            '<div class="ev-box' + (item.pick==="home"?" selected":"") + '"><div class="ev-box-label">Home EV</div><div class="ev-box-value">' + fmt(evFor(item,"home")) + '</div></div>' +
+            '<div class="ev-box' + (item.pick==="draw"?" selected":"") + '"><div class="ev-box-label">Draw EV</div><div class="ev-box-value">' + fmt(evFor(item,"draw")) + '</div></div>' +
+            '<div class="ev-box' + (item.pick==="away"?" selected":"") + '"><div class="ev-box-label">Away EV</div><div class="ev-box-value">' + fmt(evFor(item,"away")) + '</div></div>' +
+          '</div>' +
+        '</div>' +
+      '</article>';
+    }
+
+    function renderSummary(rows) {
+      document.getElementById("metricMatches").textContent = rows.length;
+      document.getElementById("metricSwings").textContent = rows.filter(isSwing).length;
+      document.getElementById("metricEv").textContent = fmt(rows.reduce(function(s,i){return s+i.ev},0));
+      document.getElementById("metricUpside").textContent = rows.reduce(function(s,i){return s+i.total},0);
+    }
+
+    function filteredPredictions() {
+      var sorter = document.getElementById("sorter").value;
+      var rows = predictions.filter(function(item) {
+        if (filter === "swing") return isSwing(item);
+        if (filter === "favorite") return !isSwing(item);
+        return true;
+      });
+      rows = rows.slice().sort(function(a,b) {
+        if (sorter === "ev") return b.ev - a.ev;
+        if (sorter === "total") return b.total - a.total;
+        if (sorter === "kickoff") return a.order - b.order;
+        return swingScore(b) - swingScore(a);
+      });
+      return rows;
+    }
+
+    function render() {
+      var rows = filteredPredictions();
+      renderSummary(rows);
+      document.getElementById("cards").innerHTML = rows.map(renderCard).join("");
+      document.getElementById("empty").style.display = rows.length ? "none" : "block";
+    }
+
+    // ── Monte Carlo ──
+    function sampleOutcome(item, random) {
+      var roll = random();
+      if (roll < item.probability.home) return "home";
+      if (roll < item.probability.home + item.probability.draw) return "draw";
+      return "away";
+    }
     function bonusPoints(crowdPct) {
       if (crowdPct <= 0.02) return 200;
       if (crowdPct <= 0.05) return 100;
@@ -903,104 +643,66 @@
       if (crowdPct <= 0.15) return 25;
       return 0;
     }
-
     function exactScoreChance(score) {
-      const map = {
-        "0-0": 0.105,
-        "1-0": 0.125,
-        "0-1": 0.120,
-        "1-1": 0.112,
-        "2-1": 0.083,
-        "1-2": 0.078,
-        "2-0": 0.074,
-        "0-2": 0.070,
-        "2-2": 0.045
-      };
+      var map = {"0-0":0.105,"1-0":0.125,"0-1":0.120,"1-1":0.112,"2-1":0.083,"1-2":0.078,"2-0":0.074,"0-2":0.070,"2-2":0.045};
       return map[score] || 0.055;
     }
-
     function seededRandom(seed) {
-      let state = seed >>> 0;
-      return function random() {
+      var state = seed >>> 0;
+      return function() {
         state += 0x6D2B79F5;
-        let t = state;
+        var t = state;
         t = Math.imul(t ^ (t >>> 15), t | 1);
         t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
         return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
       };
     }
-
-    function sampleOutcome(item, random) {
-      const roll = random();
-      if (roll < item.probability.home) return "home";
-      if (roll < item.probability.home + item.probability.draw) return "draw";
-      return "away";
-    }
-
     function crowdScore(outcome) {
       if (outcome === "home") return "1-0";
       if (outcome === "away") return "0-1";
       return "1-1";
     }
-
     function scoreCandidate(item, pickOutcome, pickScore, actualOutcome, random) {
       if (pickOutcome !== actualOutcome) return 0;
-      let points = item.points[actualOutcome] + bonusPoints(item.crowd[actualOutcome] || 1);
-      if (random() < exactScoreChance(pickScore)) points += 25;
-      return points;
+      var pts = item.points[actualOutcome] + bonusPoints(item.crowd[actualOutcome]||1);
+      if (random() < exactScoreChance(pickScore)) pts += 25;
+      return pts;
     }
-
-    function percentile(values, pctValue) {
-      const index = Math.round((values.length - 1) * pctValue);
-      return values[index] || 0;
+    function percentile(values, p) {
+      var idx = Math.round((values.length-1)*p);
+      return values[idx] || 0;
     }
-
-    function mean(values) {
-      return values.reduce((sum, value) => sum + value, 0) / Math.max(values.length, 1);
-    }
-
+    function mean(values) { return values.reduce(function(s,v){return s+v},0) / Math.max(values.length,1); }
     function simulatePortfolio(runs, seed) {
-      const random = seededRandom(seed);
-      const oracleTotals = [];
-      const crowdTotals = [];
-      const deltas = [];
-
-      for (let run = 0; run < runs; run += 1) {
-        let oracleTotal = 0;
-        let crowdTotal = 0;
-        predictions.forEach(item => {
-          const actual = sampleOutcome(item, random);
-          const crowdOutcome = crowdFavorite(item);
-          oracleTotal += scoreCandidate(item, item.pick, item.score, actual, random);
-          crowdTotal += scoreCandidate(item, crowdOutcome, crowdScore(crowdOutcome), actual, random);
+      var random = seededRandom(seed);
+      var oT=[], cT=[], d=[];
+      for (var r=0; r<runs; r++) {
+        var ot=0, ct=0;
+        predictions.forEach(function(item) {
+          var actual = sampleOutcome(item, random);
+          var crowdOutcome = crowdFavorite(item);
+          ot += scoreCandidate(item, item.pick, item.score, actual, random);
+          ct += scoreCandidate(item, crowdOutcome, crowdScore(crowdOutcome), actual, random);
         });
-        oracleTotals.push(oracleTotal);
-        crowdTotals.push(crowdTotal);
-        deltas.push(oracleTotal - crowdTotal);
+        oT.push(ot); cT.push(ct); d.push(ot-ct);
       }
-
-      oracleTotals.sort((a, b) => a - b);
-      crowdTotals.sort((a, b) => a - b);
-      deltas.sort((a, b) => a - b);
-      return { oracleTotals, crowdTotals, deltas };
+      oT.sort(function(a,b){return a-b}); cT.sort(function(a,b){return a-b}); d.sort(function(a,b){return a-b});
+      return {oracleTotals:oT, crowdTotals:cT, deltas:d};
     }
-
     function histogram(values) {
-      const bins = [
-        { label: "< -200", min: -Infinity, max: -200, count: 0 },
-        { label: "-200..-101", min: -200, max: -100, count: 0 },
-        { label: "-100..-1", min: -100, max: 0, count: 0 },
-        { label: "0..149", min: 0, max: 150, count: 0 },
-        { label: "150..299", min: 150, max: 300, count: 0 },
-        { label: "300..499", min: 300, max: 500, count: 0 },
-        { label: "500+", min: 500, max: Infinity, count: 0 }
+      var bins = [
+        {label:"< -200",min:-1e9,max:-200,count:0},
+        {label:"-200..-101",min:-200,max:-100,count:0},
+        {label:"-100..-1",min:-100,max:0,count:0},
+        {label:"0..149",min:0,max:150,count:0},
+        {label:"150..299",min:150,max:300,count:0},
+        {label:"300..499",min:300,max:500,count:0},
+        {label:"500+",min:500,max:1e9,count:0}
       ];
-
-      values.forEach(value => {
-        const bin = bins.find(item => value >= item.min && value < item.max);
-        if (bin) bin.count += 1;
+      values.forEach(function(v) {
+        var bin = bins.find(function(b){return v>=b.min && v<b.max});
+        if (bin) bin.count++;
       });
-
       return bins;
     }
 
@@ -1009,48 +711,36 @@
         renderPythonSimulation(window.MONTE_CARLO_RESULTS);
         return;
       }
+      var runsInp = document.getElementById("simRuns");
+      var seedInp = document.getElementById("simSeed");
+      var runs = Math.max(100, Math.min(100000, Number(runsInp.value)||20000));
+      var seed = Math.max(1, Number(seedInp.value)||7);
+      runsInp.value = runs; seedInp.value = seed;
 
-      const runsInput = document.getElementById("simRuns");
-      const seedInput = document.getElementById("simSeed");
-      const runs = Math.max(100, Math.min(100000, Number(runsInput.value) || 20000));
-      const seed = Math.max(1, Number(seedInput.value) || 7);
-      runsInput.value = runs;
-      seedInput.value = seed;
+      var sim = simulatePortfolio(runs, seed);
+      var dm = mean(sim.deltas);
+      var br = sim.deltas.filter(function(v){return v>0}).length / runs;
+      var bs = sim.deltas.filter(function(v){return v>=150}).length / runs;
 
-      const { oracleTotals, crowdTotals, deltas } = simulatePortfolio(runs, seed);
-      const deltaMean = mean(deltas);
-      const beatRate = deltas.filter(value => value > 0).length / runs;
-      const bigSwing = deltas.filter(value => value >= 150).length / runs;
+      document.getElementById("simOracleMean").textContent = fmt(mean(sim.oracleTotals));
+      document.getElementById("simCrowdMean").textContent = fmt(mean(sim.crowdTotals));
+      document.getElementById("simDeltaMean").textContent = fmt(dm);
+      document.getElementById("simBeatRate").textContent = pct(br);
+      document.getElementById("simBigSwing").textContent = pct(bs);
 
-      document.getElementById("simOracleMean").textContent = fmt(mean(oracleTotals));
-      document.getElementById("simCrowdMean").textContent = fmt(mean(crowdTotals));
-      document.getElementById("simDeltaMean").textContent = fmt(deltaMean);
-      document.getElementById("simBeatRate").textContent = pct(beatRate);
-      document.getElementById("simBigSwing").textContent = pct(bigSwing);
-
-      const bins = histogram(deltas);
-      const maxCount = Math.max(...bins.map(bin => bin.count), 1);
-      const chartRows = bins.map(bin => {
-        const width = (bin.count / maxCount) * 100;
-        const share = bin.count / runs;
-        return `
-          <div class="hist-row">
-            <span>${bin.label}</span>
-            <div class="hist-track" aria-hidden="true"><div class="hist-fill" style="width:${width}%"></div></div>
-            <span>${pct(share)}</span>
-          </div>
-        `;
+      var bins = histogram(sim.deltas);
+      var maxC = Math.max.apply(null, bins.map(function(b){return b.count}));
+      var chartRows = bins.map(function(bin) {
+        return '<div class="hist-row"><span>' + bin.label + '</span><div class="hist-track"><div class="hist-fill" style="width:' + ((bin.count/maxC)*100) + '%"></div></div><span>' + pct(bin.count/runs) + '</span></div>';
       }).join("");
 
-      document.getElementById("simChart").innerHTML = `
-        <div class="badge-row">
-          <span class="badge">Delta p10 ${percentile(deltas, 0.10)}</span>
-          <span class="badge">p50 ${percentile(deltas, 0.50)}</span>
-          <span class="badge">p90 ${percentile(deltas, 0.90)}</span>
-          <span class="badge risk">P(delta <= -100) ${pct(deltas.filter(value => value <= -100).length / runs)}</span>
-        </div>
-        ${chartRows}
-      `;
+      document.getElementById("simChart").innerHTML =
+        '<div class="badge-row" style="margin-bottom:8px">' +
+          '<span class="badge badge-crowd">Delta p10 ' + percentile(sim.deltas,0.10) + '</span>' +
+          '<span class="badge badge-crowd">p50 ' + percentile(sim.deltas,0.50) + '</span>' +
+          '<span class="badge badge-crowd">p90 ' + percentile(sim.deltas,0.90) + '</span>' +
+          '<span class="badge badge-swing">P(≤-100) ' + pct(sim.deltas.filter(function(v){return v<=-100}).length/runs) + '</span>' +
+        '</div>' + chartRows;
       document.getElementById("actualsPanel").innerHTML = "";
     }
 
@@ -1063,284 +753,55 @@
       document.getElementById("simBeatRate").textContent = pct(result.beatRate);
       document.getElementById("simBigSwing").textContent = pct(result.bigSwingRate);
 
-      const maxCount = Math.max(...result.histogram.map(bin => bin.count), 1);
-      const rows = result.histogram.map(bin => {
-        const width = (bin.count / maxCount) * 100;
-        const share = bin.count / Math.max(result.sims, 1);
-        return `
-          <div class="hist-row">
-            <span>${bin.label}</span>
-            <div class="hist-track" aria-hidden="true"><div class="hist-fill" style="width:${width}%"></div></div>
-            <span>${pct(share)}</span>
-          </div>
-        `;
+      var maxC = Math.max.apply(null, result.histogram.map(function(b){return b.count}));
+      var rows = result.histogram.map(function(bin) {
+        return '<div class="hist-row"><span>' + bin.label + '</span><div class="hist-track"><div class="hist-fill" style="width:' + ((bin.count/maxC)*100) + '%"></div></div><span>' + pct(bin.count/result.sims) + '</span></div>';
       }).join("");
 
-      const portfolio = result.rows.map(row => `
-        <div class="hist-row">
-          <span>${row.swing ? "Swing" : "Safe"}</span>
-          <div>${row.match}: ${row.oracle} vs crowd ${row.crowd}</div>
-          <span>${fmt(row.ev)}</span>
-        </div>
-      `).join("");
-
-      document.getElementById("simChart").innerHTML = `
-        <div class="badge-row">
-          <span class="badge pick">Python simulation</span>
-          <span class="badge">Runs ${result.sims.toLocaleString()}</span>
-          <span class="badge">Delta p10 ${result.delta.p10}</span>
-          <span class="badge">p50 ${result.delta.p50}</span>
-          <span class="badge">p90 ${result.delta.p90}</span>
-          <span class="badge risk">P(delta <= -100) ${pct(result.downsideRate)}</span>
-        </div>
-        ${rows}
-        <div class="chart" style="margin-top:12px">${portfolio}</div>
-      `;
+      document.getElementById("simChart").innerHTML =
+        '<div class="badge-row" style="margin-bottom:8px">' +
+          '<span class="badge badge-pick">Python · ' + result.sims.toLocaleString() + ' runs</span>' +
+          '<span class="badge badge-crowd">p10 ' + result.delta.p10 + '</span>' +
+          '<span class="badge badge-crowd">p50 ' + result.delta.p50 + '</span>' +
+          '<span class="badge badge-crowd">p90 ' + result.delta.p90 + '</span>' +
+          '<span class="badge badge-swing">P(≤-100) ' + pct(result.downsideRate) + '</span>' +
+        '</div>' + rows;
 
       renderActuals(result.actuals);
-      buildActualsMap();
-      mergeMCData();
-      render();
     }
 
     function renderActuals(actuals) {
-      if (!actuals) {
-        document.getElementById("actualsPanel").innerHTML = "";
-        return;
-      }
-
-      const rows = actuals.rows.map(row => `
-        <div class="hist-row">
-          <span>${row.actual}</span>
-          <div>${row.match}: oracle ${row.oracle} (${row.oraclePoints}) vs crowd ${row.crowd} (${row.crowdPoints})</div>
-          <span>${row.oraclePoints - row.crowdPoints}</span>
-        </div>
-      `).join("");
-
-      document.getElementById("actualsPanel").innerHTML = `
-        <div class="badge-row">
-          <span class="badge pick">Actuals so far</span>
-          <span class="badge">Matched ${actuals.matched}</span>
-          <span class="badge">Oracle ${actuals.oraclePoints}</span>
-          <span class="badge">Crowd ${actuals.crowdPoints}</span>
-          <span class="badge risk">Delta ${actuals.delta}</span>
-          <span class="badge">Percentile ${pct(actuals.deltaPercentile)}</span>
-        </div>
-        ${rows}
-      `;
+      if (!actuals) { document.getElementById("actualsPanel").innerHTML = ""; return; }
+      var rows = actuals.rows.map(function(row) {
+        return '<div class="hist-row"><span>' + row.actual + '</span><div>' + row.match + ': oracle ' + row.oracle + ' (' + row.oraclePoints + ') vs crowd ' + row.crowd + ' (' + row.crowdPoints + ')</div><span>' + (row.oraclePoints-row.crowdPoints) + '</span></div>';
+      }).join("");
+      document.getElementById("actualsPanel").innerHTML =
+        '<div class="badge-row" style="margin-bottom:8px">' +
+          '<span class="badge badge-pick">Actual results</span>' +
+          '<span class="badge badge-crowd">' + actuals.matched + ' matches</span>' +
+          '<span class="badge badge-crowd">Oracle ' + actuals.oraclePoints + '</span>' +
+          '<span class="badge badge-crowd">Crowd ' + actuals.crowdPoints + '</span>' +
+          '<span class="badge badge-swing">Delta ' + actuals.delta + '</span>' +
+          '<span class="badge badge-crowd">' + pct(actuals.deltaPercentile) + '</span>' +
+        '</div>' + rows;
     }
 
-    function filteredPredictions() {
-      const sorter = document.getElementById("sorter").value;
-      let rows = predictions.filter(item => {
-        if (filter === "swing") return isSwing(item);
-        if (filter === "favorite") return !isSwing(item);
-        return true;
-      });
-
-      rows = rows.slice().sort((a, b) => {
-        if (sorter === "ev") return b.ev - a.ev;
-        if (sorter === "total") return b.total - a.total;
-        if (sorter === "kickoff") return a.order - b.order;
-        return swingScore(b) - swingScore(a);
-      });
-
-      return rows;
-    }
-
-    function renderSummary(rows) {
-      document.getElementById("metricMatches").textContent = rows.length;
-      document.getElementById("metricSwings").textContent = rows.filter(isSwing).length;
-      document.getElementById("metricEv").textContent = fmt(rows.reduce((sum, item) => sum + item.ev, 0));
-      document.getElementById("metricUpside").textContent = rows.reduce((sum, item) => sum + item.total, 0);
-    }
-
-    function renderBar(item, outcome) {
-      const prob = item.probability[outcome];
-      const crowd = item.crowd[outcome];
-      return `
-        <div class="bar-row">
-          <span>${outcomeLabels[outcome]}</span>
-          <div class="track" aria-hidden="true"><div class="fill ${outcome}" style="width:${prob * 100}%"></div></div>
-          <span>${pct(prob)}</span>
-          <span>${pct(crowd)}</span>
-        </div>
-      `;
-    }
-
-    function renderEvBox(item, outcome) {
-      const selected = outcome === item.pick ? " selected" : "";
-      return `
-        <div class="ev-box${selected}">
-          <span>${outcomeLabels[outcome]} EV</span>
-          <strong>${fmt(evFor(item, outcome))}</strong>
-        </div>
-      `;
-    }
-
-    function renderCard(item) {
-      const swing = isSwing(item);
-      const favorite = crowdFavorite(item);
-      return `
-        <article class="match ${swing ? "swing" : ""}">
-          <div class="fixture">
-            <div class="teams">${item.match}</div>
-            <div class="badge-row">
-              <span class="badge pick">Pick ${outcomeLabels[item.pick]} ${item.score}</span>
-              <span class="badge ${swing ? "risk" : ""}">${swing ? "Swing" : "Crowd favorite"}</span>
-              <span class="badge">Crowd ${outcomeLabels[favorite]}</span>
-              <span class="badge">${item.bonus}</span>
-              <span class="badge pick">Model ${pct(item.probability[item.pick])} vs Crowd ${pct(item.crowd[item.pick])}</span>
-            </div>
-          </div>
-          <div>
-            <div class="bars">
-              ${renderBar(item, "home")}
-              ${renderBar(item, "draw")}
-              ${renderBar(item, "away")}
-            </div>
-          </div>
-          <div class="details">
-            <div class="score">${item.score} ${renderStatusBadge(item)}</div>
-            <div class="pickline">EV ${fmt(item.ev)} | total ${item.total} | swing ${Math.round(swingScore(item))} <span class="heatmap-toggle" onclick="toggleHeatmap(this)">Score grid ▸</span></div>
-            <div class="ev-panel">
-              ${renderEvBox(item, "home")}
-              ${renderEvBox(item, "draw")}
-              ${renderEvBox(item, "away")}
-            </div>
-            ${renderHeatmap(item)}
-            ${renderModelBreakdown(item)}
-          </div>
-          ${renderActualOnCard(item)}
-        </article>
-      `;
-    }
-
-    function heatmapColor(prob, maxProb) {
-      var intensity = maxProb > 0 ? prob / maxProb : 0;
-      var r, g, b;
-      if (intensity < 0.5) {
-        var s = intensity * 2;
-        r = Math.round(237 + (255 - 237) * s);
-        g = Math.round(241 + (200 - 241) * s);
-        b = Math.round(245 + (150 - 245) * s);
-      } else {
-        var s = (intensity - 0.5) * 2;
-        r = Math.round(255 + (194 - 255) * s);
-        g = Math.round(200 + (65 - 200) * s);
-        b = Math.round(150 + (14 - 150) * s);
-      }
-      return "rgb(" + r + "," + g + "," + b + ")";
-    }
-
-    function toggleHeatmap(el) {
-      var panel = el.parentElement.parentElement.querySelector(".heatmap-panel");
-      if (panel) {
-        panel.classList.toggle("open");
-        el.textContent = panel.classList.contains("open") ? "Score grid ▾" : "Score grid ▸";
-      }
-    }
-
-    function renderHeatmap(item) {
-      if (!item.score_matrix) return "";
-      var grid = item.score_matrix;
-      var maxProb = 0;
-      for (var i = 0; i < grid.length; i++) {
-        for (var j = 0; j < grid[i].length; j++) {
-          if (grid[i][j] > maxProb) maxProb = grid[i][j];
-        }
-      }
-      var html = '<div class="heatmap-panel"><div class="heatmap-grid">';
-      html += '<div></div>';
-      for (var j = 0; j < 7; j++) html += '<div class="heatmap-label">' + j + '</div>';
-      for (var i = 0; i < 7; i++) {
-        html += '<div class="heatmap-label">' + i + '</div>';
-        for (var j = 0; j < 7; j++) {
-          var prob = grid[i][j] || 0;
-          var bg = heatmapColor(prob, maxProb);
-          html += '<div class="heatmap-cell" style="background:' + bg + '" title="' + i + '-' + j + ': ' + (prob*100).toFixed(1) + '%">' + (prob*100).toFixed(0) + '</div>';
-        }
-      }
-      html += '</div><div class="heatmap-legend">Home goals → | Away goals ↓ | <span style="background:#edf1f5"></span> 0% <span style="background:rgb(255,200,150)"></span> ' + (maxProb*100).toFixed(1) + '%</div></div>';
-      return html;
-    }
-
-    function renderModelBreakdown(item) {
-      if (!item.model_probs) return "";
-      var outcomes = ["home", "draw", "away"];
-      var modelOrder = ["elo", "decomposed", "market", "xg"];
-      var modelColors = {"elo": "elo", "decomposed": "decomposed", "market": "market", "xg": "xg"};
-      var html = '<div class="model-breakdown"><div class="mb-label">Model contributions</div>';
-      for (var o = 0; o < outcomes.length; o++) {
-        var outcome = outcomes[o];
-        var total = 0;
-        var segs = [];
-        for (var m = 0; m < modelOrder.length; m++) {
-          var model = modelOrder[m];
-          if (item.model_probs[model] && item.model_probs[model][outcome] !== undefined) {
-            var p = item.model_probs[model][outcome];
-            total += p;
-            segs.push({model: model, p: p});
-          }
-        }
-        if (total === 0) continue;
-        html += '<div class="mb-outcome"><div class="mb-outcome-name">' + outcomeLabels[outcome] + '</div><div class="mb-track">';
-        for (var s = 0; s < segs.length; s++) {
-          var w = (segs[s].p / total) * 100;
-          html += '<div class="mb-seg ' + modelColors[segs[s].model] + '" style="width:' + w + '%"></div>';
-        }
-        html += '</div><span style="font-size:10px">' + pct(total) + '</span></div>';
-      }
-      html += '<div class="mb-seg-legend"><span class="l-elo">Elo</span><span class="l-decomposed">Decomposed</span><span class="l-market">Market</span></div></div>';
-      return html;
-    }
-
-    function renderStatusBadge(item) {
-      if (!item.status || item.status === "unknown" || item.status === "notStarted") return "";
-      if (item.status === "fullTime" || item.status === "finished") {
-        return '<span class="status-badge finished">FT</span>';
-      }
-      var score = (item.live_home !== undefined ? item.live_home : "?") + "-" + (item.live_away !== undefined ? item.live_away : "?");
-      return '<span class="status-badge live">LIVE ' + score + '</span>';
-    }
-
-    function render() {
-      const rows = filteredPredictions();
-      renderSummary(rows);
-      document.getElementById("cards").innerHTML = rows.map(renderCard).join("");
-      document.getElementById("empty").style.display = rows.length ? "none" : "block";
-    }
-
-    document.querySelectorAll("button[data-filter]").forEach(button => {
-      button.addEventListener("click", () => {
-        document.querySelectorAll("button[data-filter]").forEach(item => item.classList.remove("active"));
-        button.classList.add("active");
-        filter = button.dataset.filter;
+    // ── Event listeners ──
+    document.querySelectorAll("button[data-filter]").forEach(function(btn) {
+      btn.addEventListener("click", function() {
+        document.querySelectorAll("button[data-filter]").forEach(function(b){b.classList.remove("active")});
+        btn.classList.add("active");
+        filter = btn.dataset.filter;
         render();
       });
     });
-
     document.getElementById("sorter").addEventListener("change", render);
-    function toggleAbout() {
-      var panel = document.getElementById("aboutPanel");
-      var btn = document.querySelector(".about-toggle");
-      panel.classList.toggle("open");
-      btn.textContent = panel.classList.contains("open") ? "About ▴" : "About ▾";
-    }
-
-    function renderActualOnCard(item) {
-      var actual = actualsMap[item.match];
-      if (!actual) return "";
-      var cls = actual.oraclePoints > actual.crowdPoints ? "win" : (actual.oraclePoints === actual.crowdPoints ? "draw" : "loss");
-      var symbol = cls === "win" ? "✓" : (cls === "draw" ? "=" : "✗");
-      return '<div class="actual-on-card ' + cls + '">' +
-        symbol + ' Actual: ' + actual.actual + 
-        ' | Oracle ' + actual.oraclePoints + ' pts' +
-        ' | Crowd ' + actual.crowdPoints + ' pts' +
-        '</div>';
-    }
-
-    document.getElementById("runSim").addEventListener("click", renderSimulation);
+    document.getElementById("runSim").addEventListener("click", function() {
+      renderSimulation();
+      // Re-merge MC data after sim (updates predictions with model_probs etc)
+      mergeMCData();
+      render();
+    });
     render();
     renderSimulation();
   </script>
