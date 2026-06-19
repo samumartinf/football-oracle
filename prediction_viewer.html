@@ -180,6 +180,14 @@
       background: #fff1e8;
       color: #9a3412;
     }
+    .badge.delta-pos {
+      background: #eaf4ff;
+      color: #1a5fb4;
+    }
+    .badge.delta-neg {
+      background: #fdf0ed;
+      color: #a64b3a;
+    }
 
     .badge.pick {
       background: #eafaf4;
@@ -273,7 +281,66 @@
       font-size: 13px;
     }
 
-    .empty {
+      .actual-on-card {
+      margin-top: 10px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .actual-on-card.win {
+      background: #eafaf4;
+      color: #067647;
+    }
+    .actual-on-card.loss {
+      background: #fff1e8;
+      color: #9a3412;
+    }
+    .actual-on-card.draw {
+      background: #f2f1fa;
+      color: #5b4fcf;
+    }
+
+    .about-toggle {
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--home);
+      margin-left: 12px;
+      font-weight: 500;
+      user-select: none;
+    }
+    .about-panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin-bottom: 18px;
+      display: none;
+      font-size: 14px;
+      line-height: 1.65;
+    }
+    .about-panel.open {
+      display: block;
+    }
+    .about-panel h3 {
+      margin: 16px 0 6px;
+      font-size: 16px;
+    }
+    .about-panel h3:first-child {
+      margin-top: 0;
+    }
+    .about-panel p {
+      margin: 4px 0 10px;
+      color: var(--muted);
+    }
+    .about-panel code {
+      font-size: 12px;
+      background: #edf1f5;
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+
+.empty {
       display: none;
       background: var(--panel);
       border: 1px solid var(--line);
@@ -433,7 +500,7 @@
   <main>
     <header>
       <div>
-        <h1>Football Oracle</h1>
+        <h1>Football Oracle <span class="about-toggle" onclick="toggleAbout()">About ▾</span></h1>
         <p class="subhead">Catch-up view for MPP predictions, rarity bonuses, and upside.</p>
       </div>
       <div class="controls" aria-label="Prediction filters">
@@ -448,6 +515,41 @@
         </select>
       </div>
     </header>
+
+    <div id="aboutPanel" class="about-panel">
+      <h3>How the Football Oracle works</h3>
+      <p>
+        The Oracle blends two statistical models into a single prediction for each match:
+      </p>
+      <p>
+        <strong>Elo ratings</strong> (25% weight) — A power-rating system that estimates team strength from historical results. 
+        Higher Elo → higher win probability. Updated continuously from eloratings.net.
+      </p>
+      <p>
+        <strong>Decomposed Poisson</strong> (75% weight) — Models goals scored and conceded using attack/defense strengths derived 
+        from each team's goal history. Produces a full 11×11 score probability matrix with Dixon-Coles adjustment 
+        (corrects for the low-scoring correlation in football). When teams lack goal data (&lt;5 matches), 
+        weight shifts to Elo automatically.
+      </p>
+      <p>
+        <strong>Rarity bonus</strong> — The MPP game rewards contrarian picks. If &le;2% of the crowd picks an outcome, 
+        you get +200 bonus points. &le;5% → +100, &le;10% → +50, &le;15% → +25. 
+        The Oracle's EV calculation includes this bonus, which is why it often picks against the crowd.
+      </p>
+      <p>
+        <strong>Score prediction</strong> — For the chosen outcome, the Oracle finds the highest-probability exact score 
+        from the Dixon-Coles matrix. Getting the exact score right awards +25 bonus points.
+      </p>
+      <p>
+        <strong>Monte Carlo simulation</strong> — Instead of a single forecast, the Oracle runs thousands of simulated 
+        matchdays using the same probability distributions. This shows the <em>range</em> of possible outcomes — 
+        mean expected points, downside risk (10th percentile), and the probability of beating the crowd baseline.
+      </p>
+      <p style="margin-top:12px;color:var(--muted);font-size:12px">
+        Built by Samuel. Elo data from eloratings.net. Tournament form blended into λ estimates. 
+        <a href="https://github.com/samumartinf/football-oracle" style="color:var(--home)">github.com/samumartinf/football-oracle</a>
+      </p>
+    </div>
 
     <section class="summary" aria-label="Prediction summary">
       <div class="metric"><span>Matches</span><strong id="metricMatches">0</strong></div>
@@ -593,6 +695,16 @@
         points: { home: 71, draw: 104, away: 148 }
       }
     ];
+
+    let actualsMap = {};
+    function buildActualsMap() {
+      if (window.MONTE_CARLO_RESULTS && window.MONTE_CARLO_RESULTS.actuals) {
+        window.MONTE_CARLO_RESULTS.actuals.rows.forEach(function(row) {
+          actualsMap[row.match] = row;
+        });
+      }
+    }
+    buildActualsMap();
 
     let filter = "all";
 
@@ -827,6 +939,8 @@
       `;
 
       renderActuals(result.actuals);
+      buildActualsMap();
+      render();
     }
 
     function renderActuals(actuals) {
@@ -916,6 +1030,7 @@
               <span class="badge ${swing ? "risk" : ""}">${swing ? "Swing" : "Crowd favorite"}</span>
               <span class="badge">Crowd ${outcomeLabels[favorite]}</span>
               <span class="badge">${item.bonus}</span>
+              <span class="badge pick">Model ${pct(item.probability[item.pick])} vs Crowd ${pct(item.crowd[item.pick])}</span>
             </div>
           </div>
           <div>
@@ -934,6 +1049,7 @@
               ${renderEvBox(item, "away")}
             </div>
           </div>
+          ${renderActualOnCard(item)}
         </article>
       `;
     }
@@ -955,6 +1071,25 @@
     });
 
     document.getElementById("sorter").addEventListener("change", render);
+    function toggleAbout() {
+      var panel = document.getElementById("aboutPanel");
+      var btn = document.querySelector(".about-toggle");
+      panel.classList.toggle("open");
+      btn.textContent = panel.classList.contains("open") ? "About ▴" : "About ▾";
+    }
+
+    function renderActualOnCard(item) {
+      var actual = actualsMap[item.match];
+      if (!actual) return "";
+      var cls = actual.oraclePoints > actual.crowdPoints ? "win" : (actual.oraclePoints === actual.crowdPoints ? "draw" : "loss");
+      var symbol = cls === "win" ? "✓" : (cls === "draw" ? "=" : "✗");
+      return '<div class="actual-on-card ' + cls + '">' +
+        symbol + ' Actual: ' + actual.actual + 
+        ' | Oracle ' + actual.oraclePoints + ' pts' +
+        ' | Crowd ' + actual.crowdPoints + ' pts' +
+        '</div>';
+    }
+
     document.getElementById("runSim").addEventListener("click", renderSimulation);
     render();
     renderSimulation();

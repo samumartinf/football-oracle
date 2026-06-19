@@ -39,7 +39,7 @@ def parse_args():
     parser.add_argument(
         "--max-contrarian",
         type=int,
-        default=None,
+        default=4,
         help="Optional cap on non-crowd-favorite picks",
     )
     parser.add_argument(
@@ -109,10 +109,11 @@ def enrich_probabilities(dataset, predictor, match):
     away_mp = dataset.get(dataset_away, {}).get("matches_played", 0)
     home_elo = dataset.get(dataset_home, {}).get("elo", 1500)
     away_elo = dataset.get(dataset_away, {}).get("elo", 1500)
-    elo_diff = (home_elo - away_elo) / 100 * 0.35
+    elo_gap = abs(home_elo - away_elo)
     avg = 2.7 / 2
-    elo_hl = max(0.3, avg + elo_diff / 2)
-    elo_al = max(0.3, avg - elo_diff / 2)
+    gap_factor = 1.0 + (elo_gap / 100) * 0.12
+    elo_hl = max(0.3, avg * gap_factor + (home_elo - away_elo) / 100 * 0.18)
+    elo_al = max(0.3, avg * gap_factor - (home_elo - away_elo) / 100 * 0.18)
 
     home_gf = dataset.get(dataset_home, {}).get("goals_for", 0)
     away_gf = dataset.get(dataset_away, {}).get("goals_for", 0)

@@ -5,6 +5,7 @@ Models the full MPP scoring system: base quotations + rarity bonuses + double po
 import math
 
 CATCH_UP_THRESHOLD = 200
+MIN_CONTRARIAN_EV_DELTA = 5.0  # Minimum EV advantage to justify a contrarian pick
 
 # Rarity bonus tiers (estimated from locale file and crowd data)
 # Format: (max_crowd_pct, bonus_name, bonus_points)
@@ -86,6 +87,15 @@ def recommend_pick(probs, points, points_behind=0, crowd_pcts=None, double_match
 
     best = max(ev, key=ev.get)
     best_ev = ev[best]
+
+    # Contrarian guard: require meaningful EV advantage over crowd favorite
+    if crowd_pcts:
+        crowd_fav = max(crowd_pcts, key=crowd_pcts.get)
+        if best != crowd_fav:
+            crowd_ev = ev[crowd_fav]
+            if best_ev - crowd_ev < MIN_CONTRARIAN_EV_DELTA:
+                best = crowd_fav
+                best_ev = crowd_ev
 
     # Catch-up mode: prefer highest total-points candidate among close-EV options
     if points_behind > CATCH_UP_THRESHOLD:
@@ -213,7 +223,18 @@ def outcome_to_score(outcome, home_lambda, away_lambda):
 def _reasoning(best, ev, points, behind, crowd_pcts=None, doubled=False):
     """Generate human-readable reasoning."""
     best_ev = ev[best]
-    lines = [f"Best EV: {best} ({best_ev:.1f} pts expected)"]
+    contrarian_guard_note = ""
+    if crowd_pcts:
+        crowd_fav = max(crowd_pcts, key=crowd_pcts.get)
+        if best == crowd_fav:
+            # Check if we switched from contrarian
+            orig_best = max(ev, key=ev.get)
+            if orig_best != best:
+                delta = ev[orig_best] - ev[best]
+                if delta < MIN_CONTRARIAN_EV_DELTA:
+                    contrarian_guard_note = f" | EV delta {delta:.1f} < {MIN_CONTRARIAN_EV_DELTA:.0f}, stayed safe"
+
+    lines = [f"Best EV: {best} ({best_ev:.1f} pts expected)" + contrarian_guard_note]
 
     diffs = []
     for outcome in ["home", "draw", "away"]:

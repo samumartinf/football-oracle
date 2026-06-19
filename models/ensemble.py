@@ -42,7 +42,7 @@ class EnsemblePredictor:
     def __init__(self, dataset, weights=None):
         self.dataset = dataset
         self.weights = weights or {
-            "elo": 0.25, "poisson": 0.0, "decomposed": 0.75, "xg": 0.0, "market": 0.0,
+            "elo": 0.25, "poisson": 0.0, "decomposed": 0.70, "xg": 0.0, "market": 0.05,
         }
         # Pre-compute attack/defense strengths (goals-based)
         self.attack, self.defense = compute_strengths(dataset)

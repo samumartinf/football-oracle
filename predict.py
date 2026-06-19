@@ -46,7 +46,7 @@ def main():
     do_submit = False
     update_form = False
     filter_match = None
-    max_contrarian = None  # None = unlimited, int = cap
+    max_contrarian = 4  # int = cap, None = unlimited
 
     args = sys.argv[1:]
     i = 0
@@ -141,12 +141,16 @@ def main():
         away_mp = dataset.get(dataset_away, {}).get("matches_played", 0)
         home_elo = dataset.get(dataset_home, {}).get("elo", 1500)
         away_elo = dataset.get(dataset_away, {}).get("elo", 1500)
-        elo_diff = (home_elo - away_elo) / 100 * 0.35
-        AVG = 2.7 / 2  # 1.35
+        elo_gap = abs(home_elo - away_elo)
 
-        # Elo-derived base λ
-        elo_hl = max(0.3, AVG + elo_diff / 2)
-        elo_al = max(0.3, AVG - elo_diff / 2)
+        # Elo-derived λ with super-linear scaling for large gaps.
+        # Base: tournament average ~2.7 goals/match → 1.35 per team.
+        # Large Elo gaps produce more goals (favorite scores freely).
+        # 100 Elo gap → ~10% boost; 300 gap → ~40% boost.
+        AVG = 2.7 / 2  # 1.35
+        gap_factor = 1.0 + (elo_gap / 100) * 0.12
+        elo_hl = max(0.3, AVG * gap_factor + (home_elo - away_elo) / 100 * 0.18)
+        elo_al = max(0.3, AVG * gap_factor - (home_elo - away_elo) / 100 * 0.18)
 
         # Tournament form λ: actual goals per match in this tournament
         # Only use if team has played and scored
@@ -189,7 +193,7 @@ def main():
                 double_candidate = match
                 double_pick_for_best = dbl
 
-    # Batch-optimize picks
+    # Batch-optimize picks (with contrarian cap)
     if max_contrarian is not None:
         picks = recommend_batch(match_predictions, points_behind=catch_up,
                                max_contrarian=max_contrarian,
