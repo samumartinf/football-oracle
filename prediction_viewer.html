@@ -1,0 +1,963 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Football Oracle Predictions</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17202a;
+      --muted: #667085;
+      --line: #d8dde6;
+      --paper: #f7f9fb;
+      --panel: #ffffff;
+      --home: #2f80ed;
+      --draw: #8a6fdf;
+      --away: #0f9f6e;
+      --risk: #c2410c;
+      --safe: #475467;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+    }
+
+    main {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 24px 0 40px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      align-items: end;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 32px;
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    .subhead {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    button,
+    select {
+      min-height: 36px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--ink);
+      border-radius: 6px;
+      padding: 0 12px;
+      font: inherit;
+    }
+
+    input {
+      min-height: 36px;
+      width: 110px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--ink);
+      border-radius: 6px;
+      padding: 0 10px;
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    button.active {
+      border-color: var(--ink);
+      background: var(--ink);
+      color: white;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .metric {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      min-height: 92px;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      margin-bottom: 8px;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .match {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--safe);
+      border-radius: 8px;
+      padding: 14px;
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) minmax(290px, 1.3fr) minmax(210px, .8fr);
+      gap: 18px;
+      align-items: center;
+    }
+
+    .match.swing {
+      border-left-color: var(--risk);
+    }
+
+    .fixture {
+      display: grid;
+      gap: 8px;
+    }
+
+    .teams {
+      font-weight: 700;
+      font-size: 18px;
+      line-height: 1.2;
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 0 8px;
+      border-radius: 999px;
+      background: #eef2f6;
+      color: #344054;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .badge.risk {
+      background: #fff1e8;
+      color: #9a3412;
+    }
+
+    .badge.pick {
+      background: #eafaf4;
+      color: #067647;
+    }
+
+    .bars {
+      display: grid;
+      gap: 8px;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 44px 1fr 48px 52px;
+      gap: 8px;
+      align-items: center;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .track {
+      height: 10px;
+      background: #edf1f5;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .fill {
+      height: 100%;
+      border-radius: inherit;
+    }
+
+    .fill.home {
+      background: var(--home);
+    }
+
+    .fill.draw {
+      background: var(--draw);
+    }
+
+    .fill.away {
+      background: var(--away);
+    }
+
+    .ev-panel {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .ev-box {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 8px;
+      background: #fbfcfe;
+      min-height: 72px;
+    }
+
+    .ev-box.selected {
+      border-color: var(--ink);
+      background: #f2f5f8;
+    }
+
+    .ev-box span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .ev-box strong {
+      font-size: 20px;
+    }
+
+    .details {
+      display: grid;
+      gap: 8px;
+      justify-items: end;
+      text-align: right;
+    }
+
+    .score {
+      font-weight: 800;
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .pickline {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .empty {
+      display: none;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 24px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .sim-section {
+      margin: 18px 0;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+    }
+
+    .section-head {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: 0;
+    }
+
+    .sim-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .sim-controls label {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .sim-metrics {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .sim-card {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 10px;
+      background: #fbfcfe;
+      min-height: 78px;
+    }
+
+    .sim-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      margin-bottom: 7px;
+    }
+
+    .sim-card strong {
+      font-size: 24px;
+    }
+
+    .chart {
+      display: grid;
+      gap: 8px;
+    }
+
+    .hist-row {
+      display: grid;
+      grid-template-columns: 80px 1fr 54px;
+      gap: 8px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .hist-track {
+      height: 16px;
+      background: #edf1f5;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .hist-fill {
+      height: 100%;
+      background: var(--risk);
+      border-radius: inherit;
+    }
+
+    .sim-note {
+      color: var(--muted);
+      font-size: 12px;
+      margin: 12px 0 0;
+    }
+
+    @media (max-width: 860px) {
+      header {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        justify-content: flex-start;
+      }
+
+      .summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .sim-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .match {
+        grid-template-columns: 1fr;
+      }
+
+      .details {
+        justify-items: start;
+        text-align: left;
+      }
+    }
+
+    @media (max-width: 520px) {
+      main {
+        width: min(100% - 20px, 1180px);
+        padding-top: 16px;
+      }
+
+      .summary {
+        grid-template-columns: 1fr;
+      }
+
+      .sim-metrics {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 26px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>Football Oracle</h1>
+        <p class="subhead">Catch-up view for MPP predictions, rarity bonuses, and upside.</p>
+      </div>
+      <div class="controls" aria-label="Prediction filters">
+        <button type="button" data-filter="all" class="active">All</button>
+        <button type="button" data-filter="swing">Swings</button>
+        <button type="button" data-filter="favorite">Crowd favorites</button>
+        <select id="sorter" aria-label="Sort predictions">
+          <option value="swing">Sort by swing score</option>
+          <option value="ev">Sort by expected value</option>
+          <option value="total">Sort by total points</option>
+          <option value="kickoff">Sort by match order</option>
+        </select>
+      </div>
+    </header>
+
+    <section class="summary" aria-label="Prediction summary">
+      <div class="metric"><span>Matches</span><strong id="metricMatches">0</strong></div>
+      <div class="metric"><span>Swing picks</span><strong id="metricSwings">0</strong></div>
+      <div class="metric"><span>Total EV</span><strong id="metricEv">0</strong></div>
+      <div class="metric"><span>Max upside</span><strong id="metricUpside">0</strong></div>
+    </section>
+
+    <section class="sim-section" aria-label="Monte Carlo simulation">
+      <div class="section-head">
+        <h2>Monte Carlo</h2>
+        <div class="sim-controls">
+          <label>Runs <input id="simRuns" type="number" min="100" max="100000" step="100" value="20000"></label>
+          <label>Seed <input id="simSeed" type="number" min="1" max="999999" step="1" value="7"></label>
+          <button type="button" id="runSim">Run simulation</button>
+        </div>
+      </div>
+      <div class="sim-metrics">
+        <div class="sim-card"><span>Oracle mean</span><strong id="simOracleMean">0</strong></div>
+        <div class="sim-card"><span>Crowd mean</span><strong id="simCrowdMean">0</strong></div>
+        <div class="sim-card"><span>Mean delta</span><strong id="simDeltaMean">0</strong></div>
+        <div class="sim-card"><span>Beat crowd</span><strong id="simBeatRate">0%</strong></div>
+        <div class="sim-card"><span>Big swing +150</span><strong id="simBigSwing">0%</strong></div>
+      </div>
+      <div id="simChart" class="chart" aria-label="Delta distribution"></div>
+      <div id="actualsPanel" class="chart" style="margin-top:14px"></div>
+      <p class="sim-note">Outcome simulation uses model probabilities and MPP points. Exact-score bonus is approximated from the chosen scoreline, so treat this as a portfolio-risk view rather than a scoreline forecast.</p>
+    </section>
+
+    <section id="cards" class="grid" aria-label="Predictions"></section>
+    <div id="empty" class="empty">No predictions match this filter.</div>
+  </main>
+
+  <script src="data/monte_carlo_results.js"></script>
+  <script>
+    const predictions = [
+      {
+        match: "Argentina v Algeria",
+        order: 1,
+        pick: "away",
+        score: "1-2",
+        ev: 53.1,
+        total: 234,
+        bonus: "+50 rare",
+        probability: { home: 0.5008, draw: 0.2453, away: 0.2539 },
+        crowd: { home: 0.80, draw: 0.14, away: 0.06 },
+        points: { home: 43, draw: 129, away: 159 }
+      },
+      {
+        match: "Austria v Jordan",
+        order: 2,
+        pick: "away",
+        score: "1-2",
+        ev: 46.0,
+        total: 288,
+        bonus: "+100 ultraRare",
+        probability: { home: 0.5812, draw: 0.2437, away: 0.1751 },
+        crowd: { home: 0.83, draw: 0.14, away: 0.03 },
+        points: { home: 38, draw: 136, away: 163 }
+      },
+      {
+        match: "Portugal v DR Congo",
+        order: 3,
+        pick: "draw",
+        score: "1-1",
+        ev: 47.3,
+        total: 265,
+        bonus: "+100 ultraRare",
+        probability: { home: 0.7022, draw: 0.1969, away: 0.1009 },
+        crowd: { home: 0.95, draw: 0.04, away: 0.01 },
+        points: { home: 34, draw: 140, away: 170 }
+      },
+      {
+        match: "England v Croatia",
+        order: 4,
+        pick: "away",
+        score: "0-1",
+        ev: 46.6,
+        total: 208,
+        bonus: "+50 rare",
+        probability: { home: 0.4848, draw: 0.2608, away: 0.2544 },
+        crowd: { home: 0.57, draw: 0.35, away: 0.08 },
+        points: { home: 59, draw: 119, away: 133 }
+      },
+      {
+        match: "Ghana v Panama",
+        order: 5,
+        pick: "away",
+        score: "0-1",
+        ev: 100.0,
+        total: 191,
+        bonus: "+50 rare",
+        probability: { home: 0.1698, draw: 0.2279, away: 0.6024 },
+        crowd: { home: 0.60, draw: 0.33, away: 0.07 },
+        points: { home: 73, draw: 113, away: 116 }
+      },
+      {
+        match: "Uzbekistan v Colombia",
+        order: 6,
+        pick: "draw",
+        score: "1-1",
+        ev: 38.6,
+        total: 205,
+        bonus: "+50 rare",
+        probability: { home: 0.1383, draw: 0.2146, away: 0.6471 },
+        crowd: { home: 0.03, draw: 0.07, away: 0.90 },
+        points: { home: 157, draw: 130, away: 44 }
+      },
+      {
+        match: "Czech Republic v South Africa",
+        order: 7,
+        pick: "away",
+        score: "0-1",
+        ev: 62.1,
+        total: 192,
+        bonus: "+25 veryRare",
+        probability: { home: 0.3472, draw: 0.2812, away: 0.3718 },
+        crowd: { home: 0.58, draw: 0.27, away: 0.15 },
+        points: { home: 62, draw: 112, away: 142 }
+      },
+      {
+        match: "Switzerland v Bosnia",
+        order: 8,
+        pick: "away",
+        score: "1-2",
+        ev: 77.0,
+        total: 209,
+        bonus: "+50 rare",
+        probability: { home: 0.3382, draw: 0.2431, away: 0.4187 },
+        crowd: { home: 0.72, draw: 0.21, away: 0.06 },
+        points: { home: 76, draw: 108, away: 134 }
+      },
+      {
+        match: "Canada v Qatar",
+        order: 9,
+        pick: "away",
+        score: "0-1",
+        ev: 90.0,
+        total: 223,
+        bonus: "+50 rare",
+        probability: { home: 0.3539, draw: 0.1916, away: 0.4546 },
+        crowd: { home: 0.76, draw: 0.17, away: 0.07 },
+        points: { home: 71, draw: 104, away: 148 }
+      }
+    ];
+
+    let filter = "all";
+
+    const outcomeLabels = { home: "Home", draw: "Draw", away: "Away" };
+
+    function crowdFavorite(item) {
+      return Object.keys(item.crowd).sort((a, b) => item.crowd[b] - item.crowd[a])[0];
+    }
+
+    function isSwing(item) {
+      return item.pick !== crowdFavorite(item);
+    }
+
+    function swingScore(item) {
+      const favorite = crowdFavorite(item);
+      const pickCrowd = item.crowd[item.pick] || 0;
+      const favoriteCrowd = item.crowd[favorite] || 0;
+      return item.total * (favoriteCrowd - pickCrowd + 0.2);
+    }
+
+    function evFor(item, outcome) {
+      return item.probability[outcome] * item.points[outcome];
+    }
+
+    function pct(value) {
+      return `${Math.round(value * 100)}%`;
+    }
+
+    function fmt(value) {
+      return Number(value).toFixed(1);
+    }
+
+    function bonusPoints(crowdPct) {
+      if (crowdPct <= 0.02) return 200;
+      if (crowdPct <= 0.05) return 100;
+      if (crowdPct <= 0.10) return 50;
+      if (crowdPct <= 0.15) return 25;
+      return 0;
+    }
+
+    function exactScoreChance(score) {
+      const map = {
+        "0-0": 0.105,
+        "1-0": 0.125,
+        "0-1": 0.120,
+        "1-1": 0.112,
+        "2-1": 0.083,
+        "1-2": 0.078,
+        "2-0": 0.074,
+        "0-2": 0.070,
+        "2-2": 0.045
+      };
+      return map[score] || 0.055;
+    }
+
+    function seededRandom(seed) {
+      let state = seed >>> 0;
+      return function random() {
+        state += 0x6D2B79F5;
+        let t = state;
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+
+    function sampleOutcome(item, random) {
+      const roll = random();
+      if (roll < item.probability.home) return "home";
+      if (roll < item.probability.home + item.probability.draw) return "draw";
+      return "away";
+    }
+
+    function crowdScore(outcome) {
+      if (outcome === "home") return "1-0";
+      if (outcome === "away") return "0-1";
+      return "1-1";
+    }
+
+    function scoreCandidate(item, pickOutcome, pickScore, actualOutcome, random) {
+      if (pickOutcome !== actualOutcome) return 0;
+      let points = item.points[actualOutcome] + bonusPoints(item.crowd[actualOutcome] || 1);
+      if (random() < exactScoreChance(pickScore)) points += 25;
+      return points;
+    }
+
+    function percentile(values, pctValue) {
+      const index = Math.round((values.length - 1) * pctValue);
+      return values[index] || 0;
+    }
+
+    function mean(values) {
+      return values.reduce((sum, value) => sum + value, 0) / Math.max(values.length, 1);
+    }
+
+    function simulatePortfolio(runs, seed) {
+      const random = seededRandom(seed);
+      const oracleTotals = [];
+      const crowdTotals = [];
+      const deltas = [];
+
+      for (let run = 0; run < runs; run += 1) {
+        let oracleTotal = 0;
+        let crowdTotal = 0;
+        predictions.forEach(item => {
+          const actual = sampleOutcome(item, random);
+          const crowdOutcome = crowdFavorite(item);
+          oracleTotal += scoreCandidate(item, item.pick, item.score, actual, random);
+          crowdTotal += scoreCandidate(item, crowdOutcome, crowdScore(crowdOutcome), actual, random);
+        });
+        oracleTotals.push(oracleTotal);
+        crowdTotals.push(crowdTotal);
+        deltas.push(oracleTotal - crowdTotal);
+      }
+
+      oracleTotals.sort((a, b) => a - b);
+      crowdTotals.sort((a, b) => a - b);
+      deltas.sort((a, b) => a - b);
+      return { oracleTotals, crowdTotals, deltas };
+    }
+
+    function histogram(values) {
+      const bins = [
+        { label: "< -200", min: -Infinity, max: -200, count: 0 },
+        { label: "-200..-101", min: -200, max: -100, count: 0 },
+        { label: "-100..-1", min: -100, max: 0, count: 0 },
+        { label: "0..149", min: 0, max: 150, count: 0 },
+        { label: "150..299", min: 150, max: 300, count: 0 },
+        { label: "300..499", min: 300, max: 500, count: 0 },
+        { label: "500+", min: 500, max: Infinity, count: 0 }
+      ];
+
+      values.forEach(value => {
+        const bin = bins.find(item => value >= item.min && value < item.max);
+        if (bin) bin.count += 1;
+      });
+
+      return bins;
+    }
+
+    function renderSimulation() {
+      if (window.MONTE_CARLO_RESULTS) {
+        renderPythonSimulation(window.MONTE_CARLO_RESULTS);
+        return;
+      }
+
+      const runsInput = document.getElementById("simRuns");
+      const seedInput = document.getElementById("simSeed");
+      const runs = Math.max(100, Math.min(100000, Number(runsInput.value) || 20000));
+      const seed = Math.max(1, Number(seedInput.value) || 7);
+      runsInput.value = runs;
+      seedInput.value = seed;
+
+      const { oracleTotals, crowdTotals, deltas } = simulatePortfolio(runs, seed);
+      const deltaMean = mean(deltas);
+      const beatRate = deltas.filter(value => value > 0).length / runs;
+      const bigSwing = deltas.filter(value => value >= 150).length / runs;
+
+      document.getElementById("simOracleMean").textContent = fmt(mean(oracleTotals));
+      document.getElementById("simCrowdMean").textContent = fmt(mean(crowdTotals));
+      document.getElementById("simDeltaMean").textContent = fmt(deltaMean);
+      document.getElementById("simBeatRate").textContent = pct(beatRate);
+      document.getElementById("simBigSwing").textContent = pct(bigSwing);
+
+      const bins = histogram(deltas);
+      const maxCount = Math.max(...bins.map(bin => bin.count), 1);
+      const chartRows = bins.map(bin => {
+        const width = (bin.count / maxCount) * 100;
+        const share = bin.count / runs;
+        return `
+          <div class="hist-row">
+            <span>${bin.label}</span>
+            <div class="hist-track" aria-hidden="true"><div class="hist-fill" style="width:${width}%"></div></div>
+            <span>${pct(share)}</span>
+          </div>
+        `;
+      }).join("");
+
+      document.getElementById("simChart").innerHTML = `
+        <div class="badge-row">
+          <span class="badge">Delta p10 ${percentile(deltas, 0.10)}</span>
+          <span class="badge">p50 ${percentile(deltas, 0.50)}</span>
+          <span class="badge">p90 ${percentile(deltas, 0.90)}</span>
+          <span class="badge risk">P(delta <= -100) ${pct(deltas.filter(value => value <= -100).length / runs)}</span>
+        </div>
+        ${chartRows}
+      `;
+      document.getElementById("actualsPanel").innerHTML = "";
+    }
+
+    function renderPythonSimulation(result) {
+      document.getElementById("simRuns").value = result.sims;
+      document.getElementById("simSeed").value = result.seed;
+      document.getElementById("simOracleMean").textContent = fmt(result.oracle.mean);
+      document.getElementById("simCrowdMean").textContent = fmt(result.crowd.mean);
+      document.getElementById("simDeltaMean").textContent = fmt(result.delta.mean);
+      document.getElementById("simBeatRate").textContent = pct(result.beatRate);
+      document.getElementById("simBigSwing").textContent = pct(result.bigSwingRate);
+
+      const maxCount = Math.max(...result.histogram.map(bin => bin.count), 1);
+      const rows = result.histogram.map(bin => {
+        const width = (bin.count / maxCount) * 100;
+        const share = bin.count / Math.max(result.sims, 1);
+        return `
+          <div class="hist-row">
+            <span>${bin.label}</span>
+            <div class="hist-track" aria-hidden="true"><div class="hist-fill" style="width:${width}%"></div></div>
+            <span>${pct(share)}</span>
+          </div>
+        `;
+      }).join("");
+
+      const portfolio = result.rows.map(row => `
+        <div class="hist-row">
+          <span>${row.swing ? "Swing" : "Safe"}</span>
+          <div>${row.match}: ${row.oracle} vs crowd ${row.crowd}</div>
+          <span>${fmt(row.ev)}</span>
+        </div>
+      `).join("");
+
+      document.getElementById("simChart").innerHTML = `
+        <div class="badge-row">
+          <span class="badge pick">Python simulation</span>
+          <span class="badge">Runs ${result.sims.toLocaleString()}</span>
+          <span class="badge">Delta p10 ${result.delta.p10}</span>
+          <span class="badge">p50 ${result.delta.p50}</span>
+          <span class="badge">p90 ${result.delta.p90}</span>
+          <span class="badge risk">P(delta <= -100) ${pct(result.downsideRate)}</span>
+        </div>
+        ${rows}
+        <div class="chart" style="margin-top:12px">${portfolio}</div>
+      `;
+
+      renderActuals(result.actuals);
+    }
+
+    function renderActuals(actuals) {
+      if (!actuals) {
+        document.getElementById("actualsPanel").innerHTML = "";
+        return;
+      }
+
+      const rows = actuals.rows.map(row => `
+        <div class="hist-row">
+          <span>${row.actual}</span>
+          <div>${row.match}: oracle ${row.oracle} (${row.oraclePoints}) vs crowd ${row.crowd} (${row.crowdPoints})</div>
+          <span>${row.oraclePoints - row.crowdPoints}</span>
+        </div>
+      `).join("");
+
+      document.getElementById("actualsPanel").innerHTML = `
+        <div class="badge-row">
+          <span class="badge pick">Actuals so far</span>
+          <span class="badge">Matched ${actuals.matched}</span>
+          <span class="badge">Oracle ${actuals.oraclePoints}</span>
+          <span class="badge">Crowd ${actuals.crowdPoints}</span>
+          <span class="badge risk">Delta ${actuals.delta}</span>
+          <span class="badge">Percentile ${pct(actuals.deltaPercentile)}</span>
+        </div>
+        ${rows}
+      `;
+    }
+
+    function filteredPredictions() {
+      const sorter = document.getElementById("sorter").value;
+      let rows = predictions.filter(item => {
+        if (filter === "swing") return isSwing(item);
+        if (filter === "favorite") return !isSwing(item);
+        return true;
+      });
+
+      rows = rows.slice().sort((a, b) => {
+        if (sorter === "ev") return b.ev - a.ev;
+        if (sorter === "total") return b.total - a.total;
+        if (sorter === "kickoff") return a.order - b.order;
+        return swingScore(b) - swingScore(a);
+      });
+
+      return rows;
+    }
+
+    function renderSummary(rows) {
+      document.getElementById("metricMatches").textContent = rows.length;
+      document.getElementById("metricSwings").textContent = rows.filter(isSwing).length;
+      document.getElementById("metricEv").textContent = fmt(rows.reduce((sum, item) => sum + item.ev, 0));
+      document.getElementById("metricUpside").textContent = rows.reduce((sum, item) => sum + item.total, 0);
+    }
+
+    function renderBar(item, outcome) {
+      const prob = item.probability[outcome];
+      const crowd = item.crowd[outcome];
+      return `
+        <div class="bar-row">
+          <span>${outcomeLabels[outcome]}</span>
+          <div class="track" aria-hidden="true"><div class="fill ${outcome}" style="width:${prob * 100}%"></div></div>
+          <span>${pct(prob)}</span>
+          <span>${pct(crowd)}</span>
+        </div>
+      `;
+    }
+
+    function renderEvBox(item, outcome) {
+      const selected = outcome === item.pick ? " selected" : "";
+      return `
+        <div class="ev-box${selected}">
+          <span>${outcomeLabels[outcome]} EV</span>
+          <strong>${fmt(evFor(item, outcome))}</strong>
+        </div>
+      `;
+    }
+
+    function renderCard(item) {
+      const swing = isSwing(item);
+      const favorite = crowdFavorite(item);
+      return `
+        <article class="match ${swing ? "swing" : ""}">
+          <div class="fixture">
+            <div class="teams">${item.match}</div>
+            <div class="badge-row">
+              <span class="badge pick">Pick ${outcomeLabels[item.pick]} ${item.score}</span>
+              <span class="badge ${swing ? "risk" : ""}">${swing ? "Swing" : "Crowd favorite"}</span>
+              <span class="badge">Crowd ${outcomeLabels[favorite]}</span>
+              <span class="badge">${item.bonus}</span>
+            </div>
+          </div>
+          <div>
+            <div class="bars">
+              ${renderBar(item, "home")}
+              ${renderBar(item, "draw")}
+              ${renderBar(item, "away")}
+            </div>
+          </div>
+          <div class="details">
+            <div class="score">${item.score}</div>
+            <div class="pickline">EV ${fmt(item.ev)} | total ${item.total} | swing ${Math.round(swingScore(item))}</div>
+            <div class="ev-panel">
+              ${renderEvBox(item, "home")}
+              ${renderEvBox(item, "draw")}
+              ${renderEvBox(item, "away")}
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    function render() {
+      const rows = filteredPredictions();
+      renderSummary(rows);
+      document.getElementById("cards").innerHTML = rows.map(renderCard).join("");
+      document.getElementById("empty").style.display = rows.length ? "none" : "block";
+    }
+
+    document.querySelectorAll("button[data-filter]").forEach(button => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll("button[data-filter]").forEach(item => item.classList.remove("active"));
+        button.classList.add("active");
+        filter = button.dataset.filter;
+        render();
+      });
+    });
+
+    document.getElementById("sorter").addEventListener("change", render);
+    document.getElementById("runSim").addEventListener("click", renderSimulation);
+    render();
+    renderSimulation();
+  </script>
+</body>
+</html>

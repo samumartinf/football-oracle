@@ -14,6 +14,23 @@ from models.xg import (
     xg_match_probabilities,
 )
 
+TEAM_ALIASES = {
+    "Czech Republic": "Czechia",
+    "Bosnia & Herzegovina": "Bosnia",
+    "D.R. Congo": "DR Congo",
+    "Democratic Republic of Congo": "DR Congo",
+    "Turkey": "Türkiye",
+    "Cote d'Ivoire": "Ivory Coast",
+    "Côte d'Ivoire": "Ivory Coast",
+    "USA": "United States",
+    "United States of America": "United States",
+}
+
+
+def normalize_team_name(team_name):
+    """Map common football naming variants to dataset keys."""
+    return TEAM_ALIASES.get(team_name, team_name)
+
 
 class EnsemblePredictor:
     """Blend multiple models into a single prediction with configurable weights.
@@ -46,10 +63,14 @@ class EnsemblePredictor:
         and shifted to Elo, since the decomposed model can't distinguish
         team quality without goal history.
         """
+        home_team = normalize_team_name(home_team)
+        away_team = normalize_team_name(away_team)
+
         home_probs = []
         draw_probs = []
         away_probs = []
         models_used = {}
+        active_weight = 0.0
 
         # Per-match weight adjustment: reduce decomposed weight when
         # teams lack goal data (no pre-tournament GF/GA to model from)
@@ -74,6 +95,7 @@ class EnsemblePredictor:
                 draw_probs.append(result["draw"] * w)
                 away_probs.append(result["away"] * w)
                 models_used["elo"] = result
+                active_weight += w
         except (KeyError, TypeError):
             pass
 
@@ -86,6 +108,7 @@ class EnsemblePredictor:
                 draw_probs.append(result["draw"] * w)
                 away_probs.append(result["away"] * w)
                 models_used["poisson"] = result
+                active_weight += w
         except (KeyError, TypeError):
             pass
 
@@ -102,6 +125,7 @@ class EnsemblePredictor:
             home_probs.append(result["home"] * w)
             draw_probs.append(result["draw"] * w)
             away_probs.append(result["away"] * w)
+            active_weight += w
             models_used["decomposed"] = {
                 "home": result["home"],
                 "draw": result["draw"],
@@ -128,6 +152,7 @@ class EnsemblePredictor:
                 home_probs.append(result["home"] * w)
                 draw_probs.append(result["draw"] * w)
                 away_probs.append(result["away"] * w)
+                active_weight += w
                 models_used["xg"] = {
                     "home": result["home"],
                     "draw": result["draw"],
@@ -148,6 +173,7 @@ class EnsemblePredictor:
             home_probs.append(market["prob_win"] * w)
             draw_probs.append(market["prob_draw"] * w)
             away_probs.append(market["prob_lose"] * w)
+            active_weight += w
             models_used["market"] = {
                 "home": market["prob_win"],
                 "draw": market["prob_draw"],
@@ -157,8 +183,7 @@ class EnsemblePredictor:
         if not home_probs:
             return {"home": 0.40, "draw": 0.30, "away": 0.30, "models": {}}
 
-        total_weight = sum(self.weights[m] for m in models_used if m in self.weights)
-        scale = 1.0 / total_weight if total_weight > 0 else 1.0
+        scale = 1.0 / active_weight if active_weight > 0 else 1.0
 
         return {
             "home": round(sum(home_probs) * scale, 4),

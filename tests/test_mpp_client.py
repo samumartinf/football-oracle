@@ -1,6 +1,17 @@
 """Smoke tests for MPP API client (requires .env credentials)."""
+import os
+from pathlib import Path
+
+import pytest
+
 from mpp.auth import get_token
 from mpp.client import get_matches, get_user
+
+ENV_PATH = Path(__file__).parent.parent / ".env"
+pytestmark = pytest.mark.skipif(
+    not ENV_PATH.exists() or os.environ.get("RUN_MPP_LIVE_TESTS") != "1",
+    reason="set RUN_MPP_LIVE_TESTS=1 with MPP credentials to run live API smoke tests",
+)
 
 
 def test_auth_gets_token():

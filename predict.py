@@ -13,9 +13,12 @@ import json
 import sys
 from pathlib import Path
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+
 sys.path.insert(0, str(Path(__file__).parent))
 
-from models.ensemble import EnsemblePredictor, load_dataset
+from models.ensemble import EnsemblePredictor, load_dataset, normalize_team_name
 from models.optimizer import recommend_pick, recommend_batch
 from models.news_adjuster import get_adjustments, apply_adjustments
 from models.form_updater import apply_tournament_form
@@ -111,6 +114,8 @@ def main():
     
     for match in matches:
         home = match["home"]; away = match["away"]
+        dataset_home = normalize_team_name(home)
+        dataset_away = normalize_team_name(away)
         points = match["points"]; crowd = match.get("crowd", {})
 
         if filter_match and (home, away) != filter_match:
@@ -132,10 +137,10 @@ def main():
         # Fall back to Elo-derived λ when decomposed data is weak.
         # For score prediction, also blend in actual tournament goals-per-match
         # to capture red-hot form (e.g. Germany 7 goals in 1 match).
-        home_mp = dataset.get(home, {}).get("matches_played", 0)
-        away_mp = dataset.get(away, {}).get("matches_played", 0)
-        home_elo = dataset.get(home, {}).get("elo", 1500)
-        away_elo = dataset.get(away, {}).get("elo", 1500)
+        home_mp = dataset.get(dataset_home, {}).get("matches_played", 0)
+        away_mp = dataset.get(dataset_away, {}).get("matches_played", 0)
+        home_elo = dataset.get(dataset_home, {}).get("elo", 1500)
+        away_elo = dataset.get(dataset_away, {}).get("elo", 1500)
         elo_diff = (home_elo - away_elo) / 100 * 0.35
         AVG = 2.7 / 2  # 1.35
 
@@ -145,8 +150,8 @@ def main():
 
         # Tournament form λ: actual goals per match in this tournament
         # Only use if team has played and scored
-        home_gf = dataset.get(home, {}).get("goals_for", 0)
-        away_gf = dataset.get(away, {}).get("goals_for", 0)
+        home_gf = dataset.get(dataset_home, {}).get("goals_for", 0)
+        away_gf = dataset.get(dataset_away, {}).get("goals_for", 0)
         home_form_lam = home_gf / max(home_mp, 1) if home_mp > 0 else None
         away_form_lam = away_gf / max(away_mp, 1) if away_mp > 0 else None
 

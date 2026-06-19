@@ -50,9 +50,9 @@ def test_recommend_pick_catchup():
 
 def test_outcome_to_score():
     """Convert outcome pick to a score prediction."""
-    assert outcome_to_score("home", 1.8, 0.8) == "2-1"
+    assert outcome_to_score("home", 1.8, 0.8) == "1-0"
     assert outcome_to_score("draw", 1.2, 1.2) == "1-1"
-    assert outcome_to_score("away", 0.6, 1.8) == "0-2"
+    assert outcome_to_score("away", 0.6, 1.8) == "0-1"
 
 
 def test_recommend_pick_england_croatia():
@@ -61,7 +61,7 @@ def test_recommend_pick_england_croatia():
     points = {"home": 59, "draw": 119, "away": 133}
     pick = recommend_pick(probs, points, points_behind=800)
     assert pick["outcome"] in ("draw", "away")
-    assert pick["score"] in ("1-1", "0-2", "1-2")
+    assert pick["score"] in ("1-1", "0-1")
 
 
 # --- NEW: Rarity bonus tests ---

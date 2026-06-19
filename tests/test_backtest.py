@@ -89,7 +89,7 @@ def test_predict_ensemble_sums_to_one():
 
 def test_init_elo_all_wc_teams():
     elo = _init_elo()
-    assert len(elo) == 22
+    assert len(elo) == 48
     assert all(v == 1500 for v in elo.values())
 
 

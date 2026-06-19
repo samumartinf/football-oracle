@@ -51,3 +51,25 @@ def test_ensemble_england_croatia():
     # Both teams exist in dataset — should have non-trivial probabilities
     assert result["home"] > 0.30
     assert result["away"] > 0.20
+
+
+def test_ensemble_normalizes_after_goal_history_weight_shift():
+    """Adjusted weights should still produce a valid probability distribution."""
+    data = load_dataset()
+    predictor = EnsemblePredictor(data)
+    result = predictor.predict("Portugal", "DR Congo", neutral=True)
+    total = result["home"] + result["draw"] + result["away"]
+    assert abs(total - 1.0) < 0.01
+    assert all(0 < result[outcome] < 1 for outcome in ("home", "draw", "away"))
+
+
+def test_ensemble_normalizes_common_team_aliases():
+    """Common API/fallback names should resolve to dataset teams."""
+    data = load_dataset()
+    predictor = EnsemblePredictor(data)
+    alias_result = predictor.predict("Czech Republic", "South Africa", neutral=True)
+    canonical_result = predictor.predict("Czechia", "South Africa", neutral=True)
+    assert alias_result["models"]
+    assert alias_result["home"] == canonical_result["home"]
+    assert alias_result["draw"] == canonical_result["draw"]
+    assert alias_result["away"] == canonical_result["away"]

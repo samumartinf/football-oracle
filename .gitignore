@@ -10,6 +10,9 @@ data/forecast_api.json
 __pycache__/
 *.pyc
 .venv/
+.venv-verify/
+.pytest_cache/
+pytest-cache-files-*/
 
 # Backups
 *.bak
