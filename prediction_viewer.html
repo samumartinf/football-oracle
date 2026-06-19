@@ -200,6 +200,25 @@
       padding: 6px 8px; background: var(--white); text-align: center;
     }
     .ev-box.selected { box-shadow: 0px 0px 0px 2px var(--black); }
+    .ev-box { cursor: pointer; position: relative; }
+    .ev-popover {
+      display: none; position: absolute; bottom: 100%; left: 50%;
+      transform: translateX(-50%); margin-bottom: 6px;
+      background: var(--black); color: var(--white);
+      border-radius: var(--radius-sm); padding: 10px 14px;
+      font-size: 11px; line-height: 1.6; white-space: nowrap;
+      z-index: 10; box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+      min-width: 180px; text-align: left;
+    }
+    .ev-popover.open { display: block; }
+    .ev-popover::after {
+      content: ""; position: absolute; top: 100%; left: 50%;
+      transform: translateX(-50%);
+      border: 5px solid transparent; border-top-color: var(--black);
+    }
+    .ev-popover strong { color: #fff; }
+    .ev-popover .ev-row { display: flex; justify-content: space-between; gap: 12px; }
+    .ev-popover .ev-total { margin-top: 4px; padding-top: 4px; box-shadow: 0px -1px 0px 0px rgba(255,255,255,0.15); font-weight: 600; }
     .ev-box-label { font-size: 10px; font-weight: 500; color: var(--gray-500); text-transform: uppercase; margin-bottom: 4px; }
     .ev-box-value { font-size: 18px; font-weight: 600; letter-spacing: -0.36px; }
 
